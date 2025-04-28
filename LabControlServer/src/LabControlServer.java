@@ -1,0 +1,71 @@
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class LabControlServer {
+    private final int port;
+    private ServerSocket serverSocket;
+    private Socket comSocket;
+    private String clientIP;
+    private int clientPort;
+
+    private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
+
+    private boolean serverRunning = false;
+
+    public LabControlServer() {
+        this.port = 41007; // server's port
+        try {
+            this.serverSocket = new ServerSocket(this.port); //create socket for the communication
+        } catch (IOException e) {
+            System.out.println("Could not listen on port: " + this.port);
+        }
+        serverRunning = true;
+    }
+
+
+    public static void main(String[] args) {
+        LabControlServer labControlServer = new LabControlServer();
+        if (labControlServer.serverRunning) {
+            System.out.println("Server is running..");
+            while (true) {
+                labControlServer.establishSocketConnection();
+            }
+        }
+    }
+
+    private void establishSocketConnection() {
+        try {
+            comSocket = serverSocket.accept(); //accept client
+            // get connected client's info
+            clientIP = String.valueOf(comSocket.getInetAddress());
+            clientPort = comSocket.getPort();
+            System.out.println("Connected to " + clientIP + ":" + clientPort);
+
+            outputStream = new ObjectOutputStream(comSocket.getOutputStream()); //object stream for sending to client
+            inputStream = new ObjectInputStream(comSocket.getInputStream()); //object stream for receiving from client
+
+        } catch (IOException e) {
+            System.out.println("Failed to connect to " + clientIP + ":" + clientPort);
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void closeSocketConnection() {
+        System.out.println("Closing socket connection...");
+        try {
+            if (inputStream != null)
+                inputStream.close();
+            if (outputStream != null)
+                outputStream.close();
+            if (comSocket != null && comSocket.isClosed())
+                comSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Socket connection closed");
+    }
+}
