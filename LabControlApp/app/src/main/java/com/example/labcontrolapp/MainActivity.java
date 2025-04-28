@@ -13,10 +13,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.materialswitch.MaterialSwitch;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Toolbar toolbar;
-    Switch switchConnection;
+    MaterialToolbar toolbar;
+    MaterialSwitch switchConnection;
 
     private SocketClient client;
 
@@ -35,8 +38,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return insets;
         });
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        switchConnection = (Switch) findViewById(R.id.SwitchConnection);
+        toolbar = (MaterialToolbar) findViewById(R.id.materialToolbar);
+
+        switchConnection = (MaterialSwitch) findViewById(R.id.SwitchConnection);
 
         switchConnection.setOnClickListener(this);
 
