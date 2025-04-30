@@ -40,6 +40,14 @@ public class SocketClient {
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to connect at port: " + serverPort, e);
             mainActivity.displayToast("Failed to connect Server");
+            // turn off switch in case of a failed connection
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mainActivity.switchConnection.setChecked(false);
+                }
+            });
+
             return false;
         }
     }
@@ -58,6 +66,7 @@ public class SocketClient {
 
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + serverPort, e);
+            mainActivity.displayToast("Failed to disconnect from Server");
         } finally {
             // removing references
             outputStream = null;
