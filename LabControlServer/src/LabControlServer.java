@@ -55,17 +55,24 @@ public class LabControlServer {
     }
 
     private void closeSocketConnection() {
-        System.out.println("Closing socket connection...");
         try {
-            if (inputStream != null)
-                inputStream.close();
+            if (comSocket != null && !comSocket.isClosed()) {
+                comSocket.close();
+                System.out.println("Socket connection closed");
+            }
             if (outputStream != null)
                 outputStream.close();
-            if (comSocket != null && comSocket.isClosed())
-                comSocket.close();
+            if (inputStream != null)
+                inputStream.close();
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Failed to close socket connection");
+            System.out.println(e.getMessage());
+        } finally {
+            // removing references
+            outputStream = null;
+            inputStream = null;
+            comSocket = null;
         }
-        System.out.println("Socket connection closed");
     }
 }

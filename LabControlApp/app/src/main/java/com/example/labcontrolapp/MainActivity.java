@@ -1,14 +1,11 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -46,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setSupportActionBar(toolbar);
 
-        client = new SocketClient();
+        client = new SocketClient(this);
     }
 
     @Override
@@ -69,11 +66,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    @Override
+    protected void onDestroy() {
+        if (client !=  null) {
+            client.disconnect();
+            client = null;
+        }
+        super.onDestroy();
+    }
+
+
     public void displayToast(String s){
-        Toast toast = Toast.makeText (getApplicationContext (), s,
-                Toast.LENGTH_SHORT);
-        toast.setGravity (Gravity.BOTTOM, 0, 0);
-        toast.show ();
+        if (!isFinishing() && !isDestroyed()) // check if application is still running
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast toast = Toast.makeText (getApplicationContext (), s,
+                            Toast.LENGTH_SHORT);
+                    toast.show ();
+                }
+            });
     }
 
 }
