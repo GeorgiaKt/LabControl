@@ -14,7 +14,7 @@ public class SocketClient {
     private final String serverIP = "10.0.2.2"; // 10.0.2.2 emulator's ip
     private final int serverPort = 41007;
     private Socket comSocket;
-    SocketAddress serverAddress;
+    private SocketAddress serverAddress;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
 
@@ -39,7 +39,7 @@ public class SocketClient {
 
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to connect at port: " + serverPort, e);
-            mainActivity.displayToast("Failed to connect Server");
+            mainActivity.displayToast("Failed to connect to Server");
             // turn off switch in case of a failed connection
             mainActivity.runOnUiThread(new Runnable() {
                 @Override

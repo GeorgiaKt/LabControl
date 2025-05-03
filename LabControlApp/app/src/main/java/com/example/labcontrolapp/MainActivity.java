@@ -35,9 +35,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return insets;
         });
 
-        toolbar = (MaterialToolbar) findViewById(R.id.materialToolbar);
-
-        switchConnection = (MaterialSwitch) findViewById(R.id.SwitchConnection);
+        toolbar = findViewById(R.id.materialToolbar);
+        switchConnection = findViewById(R.id.SwitchConnection);
 
         switchConnection.setOnClickListener(this);
 
@@ -68,7 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
-        if (client !=  null) {
+        // close socket connection if still connected
+        if (client != null) {
             client.disconnect();
             client = null;
         }
