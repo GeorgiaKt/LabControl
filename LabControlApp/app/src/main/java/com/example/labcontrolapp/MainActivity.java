@@ -1,7 +1,6 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -11,14 +10,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.materialswitch.MaterialSwitch;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
 
     MaterialToolbar toolbar;
-    MaterialSwitch switchConnection;
-
-    private SocketClient client;
+    private SocketCommunication client;
 
 
     @Override
@@ -36,33 +32,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         toolbar = findViewById(R.id.materialToolbar);
-        switchConnection = findViewById(R.id.SwitchConnection);
-
-        switchConnection.setOnClickListener(this);
-
         setSupportActionBar(toolbar);
 
-        client = new SocketClient(this);
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v == switchConnection)
-            if (switchConnection.isChecked()) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        client.connect();
-                    }
-                }).start();
-            } else
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        client.disconnect();
-                    }
-                }).start();
-
+        client = new SocketCommunication(this);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                client.connect();
+            }
+        }).start();
     }
 
     @Override

@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-public class SocketClient {
+public class SocketCommunication {
     private final MainActivity mainActivity;
     private final String serverIP = "10.0.2.2"; // 10.0.2.2 emulator's ip
     private final int serverPort = 41007;
@@ -18,7 +18,7 @@ public class SocketClient {
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
 
-    public SocketClient(MainActivity mainActivity) {
+    public SocketCommunication(MainActivity mainActivity) {
         // keep reference to the main activity
         this.mainActivity = mainActivity;
     }
@@ -33,20 +33,13 @@ public class SocketClient {
             outputStream = new ObjectOutputStream(comSocket.getOutputStream());
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
-            Log.d("SocketClient","Connected to /" + serverIP + ":" + serverPort);
+            Log.d("SocketCommunication","Connected to /" + serverIP + ":" + serverPort);
             mainActivity.displayToast("Connected to Server");
             return true;
 
         } catch (IOException e) {
-            Log.e("SocketClient", "Failed to connect at port: " + serverPort, e);
+            Log.e("SocketCommunication", "Failed to connect at port: " + serverPort, e);
             mainActivity.displayToast("Failed to connect to Server");
-            // turn off switch in case of a failed connection
-            mainActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mainActivity.switchConnection.setChecked(false);
-                }
-            });
 
             return false;
         }
@@ -56,7 +49,7 @@ public class SocketClient {
         try {
             if (comSocket != null && !comSocket.isClosed()) {
                 comSocket.close();
-                Log.d("SocketClient", "Disconnected from /" + serverIP + ":" + serverPort);
+                Log.d("SocketCommunication", "Disconnected from /" + serverIP + ":" + serverPort);
                 mainActivity.displayToast("Disconnected from Server");
             }
             if (outputStream != null)
@@ -65,7 +58,7 @@ public class SocketClient {
                 inputStream.close();
 
         } catch (IOException e) {
-            Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + serverPort, e);
+            Log.e("SocketCommunication", "Failed to disconnect from /" + serverIP + ":" + serverPort, e);
             mainActivity.displayToast("Failed to disconnect from Server");
         } finally {
             // removing references

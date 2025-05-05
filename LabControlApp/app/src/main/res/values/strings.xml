@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Lab Control</string>
-    <string name="connection_status_switch">Connection to Server</string>
+    <string name="devicesText">Available Devices:</string>
 </resources>

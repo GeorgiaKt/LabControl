@@ -29,18 +29,12 @@
             app:titleTextAppearance="@style/TextAppearance.AppCompat.Display1"
             app:titleTextColor="#070707" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/SwitchConnection"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:height="48dp"
-            android:gravity="center_horizontal|center_vertical"
-            android:paddingStart="30dp"
-            android:paddingEnd="30dp"
-            android:text="@string/connection_status_switch"
-            android:textAlignment="viewStart"
-            android:textSize="20sp" />
+            android:text="@string/devicesText"
+            android:textSize="19sp"
+            android:textStyle="bold|italic" />
 
     </LinearLayout>
 
