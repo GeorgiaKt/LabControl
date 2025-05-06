@@ -34,13 +34,15 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.materialToolbar);
         setSupportActionBar(toolbar);
 
-        client = new SocketCommunication(this);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                client.connect();
-            }
-        }).start();
+        Device pc1 = new Device("PC1", "Win", true, "777");
+
+//        client = new SocketCommunication(this);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                client.connect();
+//            }
+//        }).start();
     }
 
     @Override
