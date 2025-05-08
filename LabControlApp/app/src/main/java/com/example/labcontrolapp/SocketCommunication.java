@@ -11,16 +11,17 @@ import java.net.SocketAddress;
 
 public class SocketCommunication {
     private final MainActivity mainActivity;
-    private final String serverIP = "10.0.2.2"; // 10.0.2.2 emulator's ip
+    private String serverIP; // 10.0.2.2 emulator's ip
     private final int serverPort = 41007;
     private Socket comSocket;
     private SocketAddress serverAddress;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
 
-    public SocketCommunication(MainActivity mainActivity) {
+    public SocketCommunication(MainActivity mainActivity, String ip) {
         // keep reference to the main activity
         this.mainActivity = mainActivity;
+        this.serverIP = ip;
     }
 
 
@@ -33,7 +34,7 @@ public class SocketCommunication {
             outputStream = new ObjectOutputStream(comSocket.getOutputStream());
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
-            Log.d("SocketCommunication","Connected to /" + serverIP + ":" + serverPort);
+            Log.d("SocketCommunication", "Connected to /" + serverIP + ":" + serverPort);
             mainActivity.displayToast("Connected to Server");
             return true;
 
@@ -45,7 +46,7 @@ public class SocketCommunication {
         }
     }
 
-    public void disconnect(){
+    public void disconnect() {
         try {
             if (comSocket != null && !comSocket.isClosed()) {
                 comSocket.close();

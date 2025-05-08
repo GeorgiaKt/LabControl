@@ -2,21 +2,15 @@ package com.example.labcontrolapp;
 
 public class Device {
     private String name;
+    private String ipAddress;
     private String os;
     private boolean status;
     private String macAddress;
 
-    public Device(){
-        name = "Unknown";
-        os = "Unknown";
-        macAddress = "Unknown";
-    }
-
-    public Device(String name, String os, boolean status, String macAddress){
+    public Device(String name, String ip, String mac) {
         this.name = name;
-        this.os = os;
-        this.status = status;
-        this.macAddress = macAddress;
+        this.ipAddress = ip;
+        this.macAddress = mac;
     }
 
     public String getName() {
@@ -25,6 +19,14 @@ public class Device {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
 
     public String getOs() {
