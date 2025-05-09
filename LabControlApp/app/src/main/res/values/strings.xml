@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Lab Control</string>
     <string name="devicesText">Available Devices:</string>
+    <string name="recyclerViewContentDescr">Available devices</string>
 </resources>

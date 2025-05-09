@@ -4,12 +4,22 @@ public class Device {
     private String name;
     private String ipAddress;
     private String os;
-    private boolean status;
+    private String status;
     private String macAddress;
 
     public Device(String name, String ip, String mac) {
         this.name = name;
         this.ipAddress = ip;
+        this.os = "Unknown";
+        this.status = "Unknown";
+        this.macAddress = mac;
+    }
+
+    public Device(String name, String ip, String os, String status, String mac) {
+        this.name = name;
+        this.ipAddress = ip;
+        this.os = os;
+        this.status = status;
         this.macAddress = mac;
     }
 
@@ -37,11 +47,11 @@ public class Device {
         this.os = os;
     }
 
-    public boolean isStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

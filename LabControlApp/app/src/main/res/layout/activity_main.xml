@@ -36,6 +36,12 @@
             android:textSize="19sp"
             android:textStyle="bold|italic" />
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/recyclerViewContentDescr" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,6 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -9,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     MaterialToolbar toolbar;
+    RecyclerView recyclerView;
     private SocketCommunication client;
     ArrayList<Device> devicesList;
 
@@ -37,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.materialToolbar);
         setSupportActionBar(toolbar);
+
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         initializeDevices();
 
