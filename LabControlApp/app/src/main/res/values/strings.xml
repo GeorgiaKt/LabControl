@@ -2,4 +2,7 @@
     <string name="app_name">Lab Control</string>
     <string name="devicesText">Available Devices:</string>
     <string name="recyclerViewContentDescr">Available devices</string>
+    <string name="computerOsText">Operating System</string>
+    <string name="statusText">Status</string>
+    <string name="nameText">Name</string>
 </resources>

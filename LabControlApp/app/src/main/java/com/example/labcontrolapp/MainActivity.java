@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     private SocketCommunication client;
     ArrayList<Device> devicesList;
+    DeviceAdapter deviceAdapter;
 
 
     @Override
@@ -44,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         initializeDevices();
+
+        deviceAdapter = new DeviceAdapter(devicesList, this);
+        recyclerView.setAdapter(deviceAdapter);
+
 
 //        client = new SocketCommunication(this, "10.0.2.2"); // server's IP
 //        new Thread(new Runnable() {
