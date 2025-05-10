@@ -25,7 +25,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         // check for any changed devices and update it
         for (int i = 0; i < newList.size(); i++) {
             Device newDevice = newList.get(i);
-            if (!newDevice.equals(devList.get(i))) {
+            if (!newDevice.compareDevices(devList.get(i))) {
                 devList.set(i, newDevice); // replace changed device
                 notifyItemChanged(i);      // refresh just that item
             }

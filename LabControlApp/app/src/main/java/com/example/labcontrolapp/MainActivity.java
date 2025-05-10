@@ -19,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
 
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
-    private SocketClient client;
     ArrayList<Device> devicesList;
     DeviceAdapter deviceAdapter;
 
@@ -46,18 +45,11 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
 
         initializeDevices();
+        connectDevices();
 
         deviceAdapter = new DeviceAdapter(devicesList, this);
         recyclerView.setAdapter(deviceAdapter);
 
-
-//        client = new SocketClient(this, "10.0.2.2"); // server's IP
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                client.connect();
-//            }
-//        }).start();
     }
 
     private void initializeDevices() {
@@ -71,12 +63,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void connectDevices() {
+        for (int i = 0; i < devicesList.size(); i++) {
+            final int index = i;
+            Device dev = devicesList.get(i);
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    boolean connectionResult = dev.getClient().connect();
+                    if (connectionResult)
+                        dev.setStatus("Online");
+                    else
+                        dev.setStatus("Offline");
+
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            deviceAdapter.notifyItemChanged(index);
+                        }
+                    });
+                }
+            }).start();
+
+        }
+
+    }
+
     @Override
     protected void onDestroy() {
         // close socket connection if still connected
-        if (client != null) {
-            client.disconnect();
-            client = null;
+        if (devicesList != null){
+            for (Device dev : devicesList){
+                if (dev.getClient() != null) {
+                    dev.getClient().disconnect();
+                    dev.setClient(null);
+                }
+            }
         }
         super.onDestroy();
     }

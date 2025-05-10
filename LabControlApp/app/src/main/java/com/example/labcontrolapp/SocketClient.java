@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.net.SocketAddress;
 
 public class SocketClient {
-    private final MainActivity mainActivity;
     private String serverIP; // 10.0.2.2 emulator's ip
     private final int serverPort = 41007;
     private Socket comSocket;
@@ -18,9 +17,7 @@ public class SocketClient {
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
 
-    public SocketClient(MainActivity mainActivity, String ip) {
-        // keep reference to the main activity
-        this.mainActivity = mainActivity;
+    public SocketClient(String ip) {
         this.serverIP = ip;
     }
 
@@ -35,12 +32,10 @@ public class SocketClient {
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
             Log.d("SocketClient", "Connected to /" + serverIP + ":" + serverPort);
-            mainActivity.displayToast("Connected to Server");
             return true;
 
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to connect at port: " + serverPort, e);
-            mainActivity.displayToast("Failed to connect to Server");
 
             return false;
         }
@@ -51,7 +46,6 @@ public class SocketClient {
             if (comSocket != null && !comSocket.isClosed()) {
                 comSocket.close();
                 Log.d("SocketClient", "Disconnected from /" + serverIP + ":" + serverPort);
-                mainActivity.displayToast("Disconnected from Server");
             }
             if (outputStream != null)
                 outputStream.close();
@@ -60,7 +54,6 @@ public class SocketClient {
 
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + serverPort, e);
-            mainActivity.displayToast("Failed to disconnect from Server");
         } finally {
             // removing references
             outputStream = null;
