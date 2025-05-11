@@ -17,7 +17,6 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 
 public class MainActivity extends AppCompatActivity {
-
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
     DeviceAdapter deviceAdapter;
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
         progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
-
+        recyclerView.setEnabled(false); // disable interactions while loading
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
@@ -57,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         deviceManager.connectDevices(deviceAdapter, () -> {
             progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
+            recyclerView.setEnabled(true); // enable interactions
         });
 
     }
