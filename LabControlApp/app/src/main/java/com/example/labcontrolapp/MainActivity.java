@@ -19,8 +19,8 @@ public class MainActivity extends AppCompatActivity {
 
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
-    ArrayList<Device> devicesList;
     DeviceAdapter deviceAdapter;
+    DeviceManager deviceManager;
 
 
     @Override
@@ -44,64 +44,20 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
 
-        initializeDevices();
-        connectDevices();
+        deviceManager = new DeviceManager(this);
+        deviceManager.initializeDevices();
 
-        deviceAdapter = new DeviceAdapter(devicesList, this);
+        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this);
         recyclerView.setAdapter(deviceAdapter);
 
-    }
-
-    private void initializeDevices() {
-        devicesList = new ArrayList<>();
-        for (int i = 1; i < 28; i++) {
-            if (i < 10) {
-                devicesList.add(new Device("PRPC0" + i, "192.168.88." + i, "245:34:1C:4T:" + i));
-            } else {
-                devicesList.add(new Device("PRPC" + i, "192.168.88." + i, "245:34:1C:4T:" + i));
-            }
-        }
-    }
-
-    private void connectDevices() {
-        for (int i = 0; i < devicesList.size(); i++) {
-            final int index = i;
-            Device dev = devicesList.get(i);
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    boolean connectionResult = dev.getClient().connect();
-                    if (connectionResult)
-                        dev.setStatus("Online");
-                    else
-                        dev.setStatus("Offline");
-
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            deviceAdapter.notifyItemChanged(index);
-                        }
-                    });
-                }
-            }).start();
-
-        }
+        deviceManager.connectDevices(deviceAdapter);
 
     }
+
 
     @Override
     protected void onDestroy() {
-        // close socket connection if still connected
-        if (devicesList != null){
-            for (Device dev : devicesList){
-                if (dev.getClient() != null) {
-                    dev.getClient().disconnect();
-                    dev.setClient(null);
-                }
-            }
-        }
+        deviceManager.disconnectDevices();
         super.onDestroy();
     }
 

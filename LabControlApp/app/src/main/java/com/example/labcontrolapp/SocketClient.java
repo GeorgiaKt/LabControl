@@ -10,32 +10,27 @@ import java.net.Socket;
 import java.net.SocketAddress;
 
 public class SocketClient {
-    private String serverIP; // 10.0.2.2 emulator's ip
-    private final int serverPort = 41007;
+    private String serverIP;
     private Socket comSocket;
     private SocketAddress serverAddress;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
 
-    public SocketClient(String ip) {
-        this.serverIP = ip;
-    }
-
-
-    public boolean connect() {
+    public boolean connect(String ip) {
+        serverIP = ip;
         try {
             comSocket = new Socket(); //create an empty socket for the communication between server - client
-            serverAddress = new InetSocketAddress(serverIP, serverPort);
-            comSocket.connect(serverAddress, 5000); // connect to server with a 5 seconds timeout
+            serverAddress = new InetSocketAddress(serverIP, Constants.SERVER_PORT);
+            comSocket.connect(serverAddress, Constants.CONNECT_TIMEOUT); // connect to server with a 5 seconds timeout
 
             outputStream = new ObjectOutputStream(comSocket.getOutputStream());
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
-            Log.d("SocketClient", "Connected to /" + serverIP + ":" + serverPort);
+            Log.d("SocketClient", "Connected to /" + serverIP + ":" + Constants.SERVER_PORT);
             return true;
 
         } catch (IOException e) {
-            Log.e("SocketClient", "Failed to connect at port: " + serverPort, e);
+            Log.e("SocketClient", "Failed to connect at port: " + Constants.SERVER_PORT, e);
 
             return false;
         }
@@ -45,7 +40,7 @@ public class SocketClient {
         try {
             if (comSocket != null && !comSocket.isClosed()) {
                 comSocket.close();
-                Log.d("SocketClient", "Disconnected from /" + serverIP + ":" + serverPort);
+                Log.d("SocketClient", "Disconnected from /" + serverIP + ":" + Constants.SERVER_PORT);
             }
             if (outputStream != null)
                 outputStream.close();
@@ -53,7 +48,7 @@ public class SocketClient {
                 inputStream.close();
 
         } catch (IOException e) {
-            Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + serverPort, e);
+            Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + Constants.SERVER_PORT, e);
         } finally {
             // removing references
             outputStream = null;

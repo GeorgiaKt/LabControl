@@ -14,7 +14,6 @@ public class Device {
         this.os = "Unknown";
         this.status = "Unknown";
         this.macAddress = mac;
-        client = new SocketClient("10.0.2.2");
     }
 
     public Device(String name, String ip, String os, String status, String mac) {
@@ -23,10 +22,13 @@ public class Device {
         this.os = os;
         this.status = status;
         this.macAddress = mac;
-        client = new SocketClient("10.0.2.2");
     }
 
-    public boolean compareDevices(Device dev2){
+    public void attachSocketClient(SocketClient client) {
+        this.client = client;
+    }
+
+    public boolean compareDevices(Device dev2) {
         return this.name.equalsIgnoreCase(dev2.name) &&
                 this.ipAddress.equalsIgnoreCase(dev2.ipAddress) &&
                 this.os.equalsIgnoreCase(dev2.os) &&
