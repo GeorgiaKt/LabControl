@@ -1,6 +1,8 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -13,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     DeviceAdapter deviceAdapter;
     DeviceManager deviceManager;
-
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +39,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         toolbar = findViewById(R.id.materialToolbar);
-        setSupportActionBar(toolbar);
-
         recyclerView = findViewById(R.id.recyclerView);
+        progressBar = findViewById(R.id.progressBar);
+
+        setSupportActionBar(toolbar);
+        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
+
+
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
 
@@ -50,7 +55,9 @@ public class MainActivity extends AppCompatActivity {
         deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this);
         recyclerView.setAdapter(deviceAdapter);
 
-        deviceManager.connectDevices(deviceAdapter);
+        deviceManager.connectDevices(deviceAdapter, () -> {
+            progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
+        });
 
     }
 

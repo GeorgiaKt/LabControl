@@ -1,6 +1,7 @@
 package com.example.labcontrolapp;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DeviceManager {
     private ArrayList<Device> devicesList = new ArrayList<>();
@@ -40,7 +41,10 @@ public class DeviceManager {
     }
 
 
-    public void connectDevices(DeviceAdapter adapter) {
+    public void connectDevices(DeviceAdapter adapter, Runnable onFinished) {
+        AtomicInteger completed = new AtomicInteger(0); // thread-safe counter for the number of threads that completed the connection
+        int total = devicesList.size();
+
         for (int i = 0; i < devicesList.size(); i++) {
             final int index = i;
             Device dev = devicesList.get(i);
@@ -58,6 +62,9 @@ public class DeviceManager {
                         @Override
                         public void run() {
                             adapter.notifyItemChanged(index);
+                            if (completed.incrementAndGet() == total) {
+                                onFinished.run();
+                            }
                         }
                     });
                 }
