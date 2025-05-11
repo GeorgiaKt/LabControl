@@ -12,24 +12,36 @@ import java.net.SocketAddress;
 public class SocketClient {
     private String serverIP;
     private Socket comSocket;
-    private SocketAddress serverAddress;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
+    private boolean isConnected = false;
+
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean connected) {
+        isConnected = connected;
+    }
 
     public boolean connect(String ip) {
         serverIP = ip;
         try {
             comSocket = new Socket(); //create an empty socket for the communication between server - client
-            serverAddress = new InetSocketAddress(serverIP, Constants.SERVER_PORT);
+            SocketAddress serverAddress = new InetSocketAddress(serverIP, Constants.SERVER_PORT);
             comSocket.connect(serverAddress, Constants.CONNECT_TIMEOUT); // connect to server with a 5 seconds timeout
 
             outputStream = new ObjectOutputStream(comSocket.getOutputStream());
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
+            setConnected(true);
+
             Log.d("SocketClient", "Connected to /" + serverIP + ":" + Constants.SERVER_PORT);
             return true;
 
         } catch (IOException e) {
+            setConnected(false);
             Log.e("SocketClient", "Failed to connect at port: " + Constants.SERVER_PORT, e);
 
             return false;
@@ -46,6 +58,8 @@ public class SocketClient {
                 outputStream.close();
             if (inputStream != null)
                 inputStream.close();
+
+            setConnected(false);
 
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + Constants.SERVER_PORT, e);

@@ -49,14 +49,15 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         holder.osText.setText(device.getOs());
         holder.statusText.setText(device.getStatus());
         holder.computerImageView.setImageResource(R.drawable.computer_1); // default computer icon
-        holder.statusImageView.setImageResource(R.drawable.gray_circle); // default status icon (gray)
 
         // change status icon based on data
-        if ("Online".equalsIgnoreCase(device.getStatus())) {
+        if ("Online".equalsIgnoreCase(device.getStatus()))
             holder.statusImageView.setImageResource(R.drawable.green_circle);
-        } else if ("Offline".equalsIgnoreCase(device.getStatus())) {
+        else if ("Offline".equalsIgnoreCase(device.getStatus()))
             holder.statusImageView.setImageResource(R.drawable.red_circle);
-        }
+        else
+            holder.statusImageView.setImageResource(R.drawable.gray_circle); // default status icon (gray)
+
     }
 
     @Override

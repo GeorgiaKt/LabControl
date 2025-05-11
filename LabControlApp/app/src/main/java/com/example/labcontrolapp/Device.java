@@ -34,7 +34,6 @@ public class Device {
                 this.os.equalsIgnoreCase(dev2.os) &&
                 this.status.equalsIgnoreCase(dev2.status) &&
                 this.macAddress.equalsIgnoreCase(dev2.macAddress);
-
     }
 
     public String getName() {
