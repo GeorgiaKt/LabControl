@@ -8,7 +8,6 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -30,6 +29,7 @@
             app:titleTextColor="#070707" />
 
         <TextView
+            style="@android:style/Widget.Material.TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/devicesText"
@@ -43,5 +43,16 @@
             android:contentDescription="@string/recyclerViewContentDescr" />
 
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@android:style/Widget.Material.Light.ProgressBar.Large"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
