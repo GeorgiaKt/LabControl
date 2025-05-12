@@ -1,6 +1,9 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -16,12 +19,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener {
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
     DeviceAdapter deviceAdapter;
     DeviceManager deviceManager;
     ProgressBar progressBar;
+    ActionMode actionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         deviceManager = new DeviceManager(this);
         deviceManager.initializeDevices();
 
-        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this);
+        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this, this);
         recyclerView.setAdapter(deviceAdapter);
 
         deviceManager.connectDevices(deviceAdapter, () -> {
@@ -60,6 +64,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode actionMode) {
+
+        }
+    };
 
 
     @Override
@@ -81,4 +107,13 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
+    @Override
+    public void onDeviceLongClickListener(int position) {
+        if (actionMode == null) { // if there isn't
+            actionMode = startActionMode(actionModeCallback);
+        }
+        boolean sel = deviceManager.getDevicesList().get(position).isSelected();
+        deviceManager.getDevicesList().get(position).setSelected(!sel); // toggle selection of the device
+        deviceAdapter.notifyDataSetChanged(); // update ui
+    }
 }

@@ -9,6 +9,7 @@ public class Device {
     private String status;
     private String macAddress;
     private SocketClient client;
+    private boolean isSelected;
 
     public Device(String name, String ip, String mac) {
         this.name = name;
@@ -84,6 +85,14 @@ public class Device {
 
     public void setClient(SocketClient client) {
         this.client = client;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
     }
 
     @NonNull

@@ -1,6 +1,7 @@
 package com.example.labcontrolapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +16,12 @@ import java.util.ArrayList;
 public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceViewHolder> {
     ArrayList<Device> devList; // list of displayed devices
     private final Context context;
+    private final OnDeviceClickListener listener;
 
-    public DeviceAdapter(ArrayList<Device> devicesList, Context ctx) {
+    public DeviceAdapter(ArrayList<Device> devicesList, Context ctx, OnDeviceClickListener listener) {
         this.devList = new ArrayList<>(devicesList);
         this.context = ctx;
+        this.listener = listener;
     }
 
     public void updateList(@NonNull ArrayList<Device> newList) {
@@ -49,6 +52,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         holder.osText.setText(device.getOs());
         holder.statusText.setText(device.getStatus());
         holder.computerImageView.setImageResource(R.drawable.computer_1); // default computer icon
+        holder.checkmarkImageView.setImageResource(R.drawable.black_round_checkmark);
 
         // change status icon based on data
         if ("Online".equalsIgnoreCase(device.getStatus()))
@@ -58,6 +62,21 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         else
             holder.statusImageView.setImageResource(R.drawable.black_circle); // default status icon (gray)
 
+        if (devList.get(position).isSelected()) // change visibility of the checkmark image based on selection
+            holder.checkmarkImageView.setVisibility(View.VISIBLE);
+        else
+            holder.checkmarkImageView.setVisibility(View.GONE);
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                int currentPosition = holder.getAdapterPosition();
+                if (currentPosition != RecyclerView.NO_POSITION) { // proceed only if View Holder's position is still valid
+                    listener.onDeviceLongClickListener(currentPosition);
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -68,7 +87,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
 
     public static class DeviceViewHolder extends RecyclerView.ViewHolder {
         TextView nameText, osText, statusText;
-        ImageView computerImageView, statusImageView;
+        ImageView computerImageView, statusImageView, checkmarkImageView;
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -78,6 +97,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             statusText = itemView.findViewById(R.id.statusText);
             computerImageView = itemView.findViewById(R.id.computerImageView);
             statusImageView = itemView.findViewById(R.id.statusImageView);
+            checkmarkImageView = itemView.findViewById(R.id.checkmarkImageView);
         }
+
     }
 }
