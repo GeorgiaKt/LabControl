@@ -2,8 +2,9 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.LabControlApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<!--         <item name="colorPrimary">#505b92</item>-->
     </style>
 
-    <style name="Theme.LabControlApp" parent="Base.Theme.LabControlApp" />
+    <style name="Theme.LabControlApp" parent="Base.Theme.LabControlApp">
+    </style>
 </resources>

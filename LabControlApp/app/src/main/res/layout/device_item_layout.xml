@@ -65,7 +65,7 @@
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_marginStart="8dp"
-                    app:srcCompat="@drawable/gray_circle" />
+                    app:srcCompat="@drawable/black_circle" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

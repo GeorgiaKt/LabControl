@@ -56,7 +56,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         else if ("Offline".equalsIgnoreCase(device.getStatus()))
             holder.statusImageView.setImageResource(R.drawable.red_circle);
         else
-            holder.statusImageView.setImageResource(R.drawable.gray_circle); // default status icon (gray)
+            holder.statusImageView.setImageResource(R.drawable.black_circle); // default status icon (gray)
 
     }
 
