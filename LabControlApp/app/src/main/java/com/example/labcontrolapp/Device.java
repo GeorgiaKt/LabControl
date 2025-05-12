@@ -1,5 +1,7 @@
 package com.example.labcontrolapp;
 
+import androidx.annotation.NonNull;
+
 public class Device {
     private String name;
     private String ipAddress;
@@ -82,5 +84,15 @@ public class Device {
 
     public void setClient(SocketClient client) {
         this.client = client;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return getName() + " " +
+                getIpAddress() + " " +
+                getOs() + " " +
+                getStatus() + " " +
+                getMacAddress() + " ";
     }
 }
