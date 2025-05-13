@@ -41,7 +41,7 @@ public class DeviceManager {
     }
 
 
-    public void connectDevices(DeviceAdapter adapter, Runnable onFinished) {
+    public void connectDevices(DeviceAdapter adapter, OnDevicesConnectedCallback onFinishedCallback) {
         AtomicInteger completed = new AtomicInteger(0); // thread-safe counter for the number of threads that completed the connection
         int total = devicesList.size();
 
@@ -63,7 +63,7 @@ public class DeviceManager {
                         public void run() {
                             adapter.notifyItemChanged(index);
                             if (completed.incrementAndGet() == total) {
-                                onFinished.run();
+                                onFinishedCallback.onAllDevicesConnected();
                             }
                         }
                     });

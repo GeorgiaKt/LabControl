@@ -19,11 +19,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 
 
-public class MainActivity extends AppCompatActivity implements OnDeviceClickListener {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesConnectedCallback {
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
-    DeviceAdapter deviceAdapter;
     DeviceManager deviceManager;
+    DeviceAdapter deviceAdapter;
     ProgressBar progressBar;
     ActionMode actionMode;
 
@@ -58,10 +58,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this, this);
         recyclerView.setAdapter(deviceAdapter);
 
-        deviceManager.connectDevices(deviceAdapter, () -> {
-            progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
-            recyclerView.setEnabled(true); // enable interactions
-        });
+        deviceManager.connectDevices(deviceAdapter, this);
 
     }
 
@@ -115,5 +112,11 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         boolean sel = deviceManager.getDevicesList().get(position).isSelected();
         deviceManager.getDevicesList().get(position).setSelected(!sel); // toggle selection of the device
         deviceAdapter.notifyDataSetChanged(); // update ui
+    }
+
+    @Override
+    public void onAllDevicesConnected() {
+        progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
+        recyclerView.setEnabled(true); // enable interactions
     }
 }

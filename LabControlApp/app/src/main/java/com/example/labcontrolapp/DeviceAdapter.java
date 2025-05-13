@@ -21,7 +21,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
     public DeviceAdapter(ArrayList<Device> devicesList, Context ctx, OnDeviceClickListener listener) {
         this.devList = new ArrayList<>(devicesList);
         this.context = ctx;
-        this.listener = listener;
+        this.listener = listener; // reference to Main Activity's listener
     }
 
     public void updateList(@NonNull ArrayList<Device> newList) {
@@ -62,10 +62,12 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         else
             holder.statusImageView.setImageResource(R.drawable.black_circle); // default status icon (gray)
 
-        if (devList.get(position).isSelected()) // change visibility of the checkmark image based on selection
+        // change visibility of the checkmark image based on selection
+        if (devList.get(position).isSelected())
             holder.checkmarkImageView.setVisibility(View.VISIBLE);
         else
             holder.checkmarkImageView.setVisibility(View.GONE);
+
 
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
