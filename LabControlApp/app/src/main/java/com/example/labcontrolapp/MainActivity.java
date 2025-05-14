@@ -68,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            return false;
+            actionMode.getMenuInflater().inflate(R.menu.multiple_selection_bar_menu, menu);
+            actionMode.setTitle("Select devices");
+            return true;
         }
 
         @Override
@@ -78,12 +80,44 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
         @Override
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            if (menuItem.getItemId() == R.id.echoMenuItem) {
+
+                deviceAdapter.notifyDataSetChanged();
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.restartMenuItem) {
+
+                deviceAdapter.notifyDataSetChanged();
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.shutDownMenuItem) {
+
+                deviceAdapter.notifyDataSetChanged();
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.restoreMenuItem) {
+
+                deviceAdapter.notifyDataSetChanged();
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.wakeMenuItem) {
+
+                deviceAdapter.notifyDataSetChanged();
+                actionMode.finish();
+                return true;
+            }
+
             return false;
         }
 
         @Override
         public void onDestroyActionMode(ActionMode actionMode) {
+            for (int i = 0; i < deviceManager.getDevicesList().size(); i++) {
+                deviceManager.getDevicesList().get(i).setSelected(false);
+            }
 
+            deviceAdapter.notifyDataSetChanged();
+            actionMode = null;
         }
     };
 

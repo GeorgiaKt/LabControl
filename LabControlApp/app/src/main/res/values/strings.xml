@@ -5,4 +5,10 @@
     <string name="computerOsText">Operating System</string>
     <string name="statusText">Status</string>
     <string name="nameText">Name</string>
+    <string name="echoMenuItemText">Echo</string>
+    <string name="restartMenuItemText">Restart</string>
+    <string name="shutdownMenuItemText">Shut down</string>
+    <string name="restoreMenuItemText">Restore</string>
+    <string name="wakeMenuItemText">Wake on LAN</string>
+    <string name="optionsMenuItem">Options</string>
 </resources>

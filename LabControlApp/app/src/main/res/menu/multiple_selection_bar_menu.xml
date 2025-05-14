@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/echoMenuItem"
+        android:title="@string/echoMenuItemText"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/restartMenuItem"
+        android:title="@string/restartMenuItemText"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/shutDownMenuItem"
+        android:title="@string/shutdownMenuItemText"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/restoreMenuItem"
+        android:title="@string/restoreMenuItemText"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/wakeMenuItem"
+        android:title="@string/wakeMenuItemText"
+        app:showAsAction="never" />
+</menu>
