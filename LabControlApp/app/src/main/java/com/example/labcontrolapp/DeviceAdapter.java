@@ -60,7 +60,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         else if ("Offline".equalsIgnoreCase(device.getStatus()))
             holder.statusImageView.setImageResource(R.drawable.red_circle);
         else
-            holder.statusImageView.setImageResource(R.drawable.black_circle); // default status icon (gray)
+            holder.statusImageView.setImageResource(R.drawable.black_circle); // default status icon (black)
 
         // change visibility of the checkmark image based on selection
         if (devList.get(position).isSelected())
@@ -69,7 +69,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             holder.checkmarkImageView.setVisibility(View.GONE);
 
 
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() { // handle long click
             @Override
             public boolean onLongClick(View view) {
                 int currentPosition = holder.getAdapterPosition();

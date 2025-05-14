@@ -16,7 +16,6 @@ public class SocketClient {
     private ObjectInputStream inputStream;
     private boolean isConnected = false;
 
-
     public boolean isConnected() {
         return isConnected;
     }

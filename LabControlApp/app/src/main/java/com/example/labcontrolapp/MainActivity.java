@@ -20,18 +20,20 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 
 public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesConnectedCallback {
+    // ui components
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
+    ProgressBar progressBar;
+    // core components
     DeviceManager deviceManager;
     DeviceAdapter deviceAdapter;
-    ProgressBar progressBar;
-    ActionMode actionMode;
+    ActionMode actionMode; // for multiple item selection
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        EdgeToEdge.enable(this);
+        EdgeToEdge.enable(this); // edge to edge layout
 
         setContentView(R.layout.activity_main);
 
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     }
 
+    // callback for contextual action bar (multi-selection mode)
     ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -105,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     @Override
-    public void onDeviceLongClickListener(int position) {
+    public void onDeviceLongClickListener(int position) { // called when a device is long-pressed
         if (actionMode == null) { // if there isn't
             actionMode = startActionMode(actionModeCallback);
         }
@@ -115,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     @Override
-    public void onAllDevicesConnected() {
+    public void onAllDevicesConnected() { // called when all threads for device connecting finish
         progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
         recyclerView.setEnabled(true); // enable interactions
     }

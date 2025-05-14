@@ -35,7 +35,7 @@ public class DeviceManager {
                 mac = "245:34:1C:4T:" + i;
             }
             Device dev = new Device(name, ip, mac);
-            dev.attachSocketClient(new SocketClient());
+            dev.attachSocketClient(new SocketClient()); // attach socket client to each device
             devicesList.add(dev);
         }
     }
@@ -61,9 +61,9 @@ public class DeviceManager {
                     mainActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(index);
+                            adapter.notifyItemChanged(index); // update ui
                             if (completed.incrementAndGet() == total) {
-                                onFinishedCallback.onAllDevicesConnected();
+                                onFinishedCallback.onAllDevicesConnected(); // inform when all finish
                             }
                         }
                     });
@@ -76,12 +76,10 @@ public class DeviceManager {
 
     public void disconnectDevices() {
         // close socket connection if still connected
-        if (devicesList != null) {
-            for (Device dev : devicesList) {
-                if (dev.getClient() != null) {
-                    dev.getClient().disconnect();
-                    dev.setClient(null);
-                }
+        for (Device dev : devicesList) {
+            if (dev.getClient() != null) {
+                dev.getClient().disconnect();
+                dev.setClient(null);
             }
         }
     }

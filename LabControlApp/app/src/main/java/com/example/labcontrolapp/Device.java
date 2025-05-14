@@ -31,7 +31,7 @@ public class Device {
         this.client = client;
     }
 
-    public boolean compareDevices(Device dev2) {
+    public boolean compareDevices(Device dev2) { // compare if two devices are the same
         return this.name.equalsIgnoreCase(dev2.name) &&
                 this.ipAddress.equalsIgnoreCase(dev2.ipAddress) &&
                 this.os.equalsIgnoreCase(dev2.os) &&
