@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/optionsMenuItem"
-        android:icon="@drawable/options_vertical"
+        android:icon="@drawable/more"
         android:title="@string/optionsMenuItemText"
         app:showAsAction="always">
         <menu>
