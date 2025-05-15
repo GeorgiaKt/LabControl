@@ -87,27 +87,22 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             if (menuItem.getItemId() == R.id.echoMenuItem) {
 
-                deviceAdapter.notifyDataSetChanged();
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.restartMenuItem) {
 
-                deviceAdapter.notifyDataSetChanged();
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.shutDownMenuItem) {
 
-                deviceAdapter.notifyDataSetChanged();
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.restoreMenuItem) {
 
-                deviceAdapter.notifyDataSetChanged();
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.wakeMenuItem) {
 
-                deviceAdapter.notifyDataSetChanged();
                 actionMode.finish();
                 return true;
             }
@@ -118,10 +113,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
-            for (int i = 0; i < deviceManager.getDevicesList().size(); i++) {
-                deviceManager.getDevicesList().get(i).setSelected(false);
-            }
-
+            deviceManager.clearSelection();
             deviceAdapter.notifyDataSetChanged();
         }
     };
@@ -142,11 +134,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     @Override
     public void onDeviceClickListener(int position) {
         if (actionMode != null) { // if contextual action bar is activated
-            toggleSelection(position);
+            deviceManager.toggleSelection(position);
+            deviceAdapter.notifyItemChanged(position);
             updateContextualBarTitle();
 
             // end action mode if no items are selected
-            if (deviceAdapter.getSelectedCount() == 0) {
+            if (deviceManager.getSelectedDevices().isEmpty()) {
                 actionMode.finish();
             }
         }
@@ -157,11 +150,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         if (actionMode == null) { // if there isn't a contextual action bar already activated
             actionMode = startActionMode(actionModeCallback);
         }
-        toggleSelection(position);
+        deviceManager.toggleSelection(position);
+        deviceAdapter.notifyItemChanged(position);
         updateContextualBarTitle();
 
         // end action mode if no items are selected
-        if (deviceAdapter.getSelectedCount() == 0) {
+        if (deviceManager.getSelectedDevices().isEmpty()) {
             actionMode.finish();
         }
     }
@@ -172,15 +166,10 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         recyclerView.setEnabled(true); // enable interactions
     }
 
-    public void toggleSelection(int position) {
-        boolean sel = deviceManager.getDevicesList().get(position).isSelected();
-        deviceManager.getDevicesList().get(position).setSelected(!sel); // toggle selection of the device
-        deviceAdapter.notifyItemChanged(position);
-    }
 
     public void updateContextualBarTitle() {
         // add as a title of the cab the number of selected devices
-        int selectedCount = deviceAdapter.getSelectedCount();
+        int selectedCount = deviceManager.getSelectedDevices().size();
         actionMode.setTitle(selectedCount + "");
     }
 

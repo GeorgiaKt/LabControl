@@ -84,4 +84,23 @@ public class DeviceManager {
         }
     }
 
+    public ArrayList<Device> getSelectedDevices() {
+        ArrayList<Device> selectedDev = new ArrayList<>();
+        for (Device dev : devicesList)
+            if (dev.isSelected())
+                selectedDev.add(dev);
+        return selectedDev;
+    }
+
+    public void clearSelection() {
+        for (int i = 0; i < devicesList.size(); i++) {
+            devicesList.get(i).setSelected(false);
+        }
+    }
+
+    public void toggleSelection(int position) {
+        boolean sel = devicesList.get(position).isSelected();
+        devicesList.get(position).setSelected(!sel); // toggle selection of the device
+    }
+
 }
