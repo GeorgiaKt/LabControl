@@ -77,6 +77,16 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             holder.checkmarkImageView.setVisibility(View.GONE);
 
 
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int currentPosition = holder.getAdapterPosition();
+                if (currentPosition != RecyclerView.NO_POSITION) { // proceed only if View Holder's position is still valid
+                    listener.onDeviceClickListener(currentPosition);
+                }
+            }
+        });
+
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() { // handle long click
             @Override
             public boolean onLongClick(View view) {

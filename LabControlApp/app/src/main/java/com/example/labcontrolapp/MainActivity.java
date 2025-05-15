@@ -64,6 +64,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     }
 
+    @Override
+    protected void onDestroy() {
+        deviceManager.disconnectDevices();
+        super.onDestroy();
+    }
+
     // callback for contextual action bar (multi-selection mode)
     ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
         @Override
@@ -110,7 +116,8 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         }
 
         @Override
-        public void onDestroyActionMode(ActionMode actionMode) {
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
             for (int i = 0; i < deviceManager.getDevicesList().size(); i++) {
                 deviceManager.getDevicesList().get(i).setSelected(false);
             }
@@ -118,13 +125,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             deviceAdapter.notifyDataSetChanged();
         }
     };
-
-
-    @Override
-    protected void onDestroy() {
-        deviceManager.disconnectDevices();
-        super.onDestroy();
-    }
 
 
     public void displayToast(String s) {
@@ -140,17 +140,30 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     @Override
+    public void onDeviceClickListener(int position) {
+        if (actionMode != null) { // if contextual action bar is activated
+            toggleSelection(position);
+            updateContextualBarTitle();
+
+            // end action mode if no items are selected
+            if (deviceAdapter.getSelectedCount() == 0) {
+                actionMode.finish();
+            }
+        }
+    }
+
+    @Override
     public void onDeviceLongClickListener(int position) { // called when a device is long-pressed
-        if (actionMode == null) { // if there isn't
+        if (actionMode == null) { // if there isn't a contextual action bar already activated
             actionMode = startActionMode(actionModeCallback);
         }
-        boolean sel = deviceManager.getDevicesList().get(position).isSelected();
-        deviceManager.getDevicesList().get(position).setSelected(!sel); // toggle selection of the device
-        deviceAdapter.notifyDataSetChanged(); // update ui
+        toggleSelection(position);
+        updateContextualBarTitle();
 
-        // add selected devices
-        int selectedCount = deviceAdapter.getSelectedCount();
-        actionMode.setTitle(selectedCount + "");
+        // end action mode if no items are selected
+        if (deviceAdapter.getSelectedCount() == 0) {
+            actionMode.finish();
+        }
     }
 
     @Override
@@ -158,4 +171,17 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
         recyclerView.setEnabled(true); // enable interactions
     }
+
+    public void toggleSelection(int position) {
+        boolean sel = deviceManager.getDevicesList().get(position).isSelected();
+        deviceManager.getDevicesList().get(position).setSelected(!sel); // toggle selection of the device
+        deviceAdapter.notifyItemChanged(position);
+    }
+
+    public void updateContextualBarTitle() {
+        // add as a title of the cab the number of selected devices
+        int selectedCount = deviceAdapter.getSelectedCount();
+        actionMode.setTitle(selectedCount + "");
+    }
+
 }
