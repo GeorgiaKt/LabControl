@@ -11,4 +11,5 @@
     <string name="restoreMenuItemText">Restore</string>
     <string name="wakeMenuItemText">Wake on LAN</string>
     <string name="optionsMenuItem">Options</string>
+    <string name="optionsMenuItemText">Options\n</string>
 </resources>

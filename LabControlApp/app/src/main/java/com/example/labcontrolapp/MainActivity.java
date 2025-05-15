@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
             actionMode.getMenuInflater().inflate(R.menu.multiple_selection_bar_menu, menu);
-            actionMode.setTitle("Select devices");
             return true;
         }
 
@@ -117,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             }
 
             deviceAdapter.notifyDataSetChanged();
-            actionMode = null;
         }
     };
 
@@ -149,6 +147,10 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         boolean sel = deviceManager.getDevicesList().get(position).isSelected();
         deviceManager.getDevicesList().get(position).setSelected(!sel); // toggle selection of the device
         deviceAdapter.notifyDataSetChanged(); // update ui
+
+        // add selected devices
+        int selectedCount = deviceAdapter.getSelectedCount();
+        actionMode.setTitle(selectedCount + "");
     }
 
     @Override

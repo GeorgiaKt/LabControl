@@ -35,6 +35,14 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         }
     }
 
+    public int getSelectedCount() {
+        int count = 0;
+        for (Device device : devList) {
+            if (device.isSelected()) count++;
+        }
+        return count;
+    }
+
     @NonNull
     @Override
     public DeviceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
