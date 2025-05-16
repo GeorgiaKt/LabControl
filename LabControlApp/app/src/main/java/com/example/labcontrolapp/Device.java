@@ -14,8 +14,8 @@ public class Device {
     public Device(String name, String ip, String mac) {
         this.name = name;
         this.ipAddress = ip;
-        this.os = "Unknown";
-        this.status = "Unknown";
+        this.os = "N/A OS";
+        this.status = "N/A Status";
         this.macAddress = mac;
     }
 

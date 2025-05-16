@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     DeviceManager deviceManager;
     DeviceAdapter deviceAdapter;
     ActionMode actionMode; // for multiple item selection
+    View blockingOverlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
         EdgeToEdge.enable(this); // edge to edge layout
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_activity_layout);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -46,10 +47,11 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         toolbar = findViewById(R.id.materialToolbar);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
+        blockingOverlay = findViewById(R.id.blockingOverlay);
 
         setSupportActionBar(toolbar);
         progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
-        recyclerView.setEnabled(false); // disable interactions while loading
+        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
@@ -163,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     @Override
     public void onAllDevicesConnected() { // called when all threads for device connecting finish
         progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
-        recyclerView.setEnabled(true); // enable interactions
+        blockingOverlay.setVisibility(View.GONE); // allow interactions
     }
 
 
