@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     DeviceManager deviceManager;
     DeviceAdapter deviceAdapter;
     ActionMode actionMode; // for multiple item selection
-    View blockingOverlay;
+    View blockingOverlay; // overlay for blocking interactions while loading
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

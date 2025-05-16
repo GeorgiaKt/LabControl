@@ -33,7 +33,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/devicesText"
-            android:textSize="19sp"
+            android:textAlignment="center"
+            android:textSize="20sp"
             android:textStyle="bold|italic" />
 
         <androidx.recyclerview.widget.RecyclerView
