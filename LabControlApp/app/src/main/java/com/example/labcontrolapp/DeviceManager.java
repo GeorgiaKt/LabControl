@@ -35,13 +35,13 @@ public class DeviceManager {
                 mac = "245:34:1C:4T:" + i;
             }
             Device dev = new Device(name, ip, mac);
-            dev.attachSocketClient(new SocketClient());
+            dev.attachSocketClient(new SocketClient()); // attach socket client to each device
             devicesList.add(dev);
         }
     }
 
 
-    public void connectDevices(DeviceAdapter adapter, Runnable onFinished) {
+    public void connectDevices(DeviceAdapter adapter, OnDevicesConnectedCallback onFinishedCallback) {
         AtomicInteger completed = new AtomicInteger(0); // thread-safe counter for the number of threads that completed the connection
         int total = devicesList.size();
 
@@ -61,9 +61,9 @@ public class DeviceManager {
                     mainActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(index);
+                            adapter.notifyItemChanged(index); // update ui
                             if (completed.incrementAndGet() == total) {
-                                onFinished.run();
+                                onFinishedCallback.onAllDevicesConnected(); // inform when all finish
                             }
                         }
                     });
@@ -76,14 +76,31 @@ public class DeviceManager {
 
     public void disconnectDevices() {
         // close socket connection if still connected
-        if (devicesList != null) {
-            for (Device dev : devicesList) {
-                if (dev.getClient() != null) {
-                    dev.getClient().disconnect();
-                    dev.setClient(null);
-                }
+        for (Device dev : devicesList) {
+            if (dev.getClient() != null) {
+                dev.getClient().disconnect();
+                dev.setClient(null);
             }
         }
+    }
+
+    public ArrayList<Device> getSelectedDevices() {
+        ArrayList<Device> selectedDev = new ArrayList<>();
+        for (Device dev : devicesList)
+            if (dev.isSelected())
+                selectedDev.add(dev);
+        return selectedDev;
+    }
+
+    public void clearSelection() {
+        for (int i = 0; i < devicesList.size(); i++) {
+            devicesList.get(i).setSelected(false);
+        }
+    }
+
+    public void toggleSelection(int position) {
+        boolean sel = devicesList.get(position).isSelected();
+        devicesList.get(position).setSelected(!sel); // toggle selection of the device
     }
 
 }

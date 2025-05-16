@@ -9,6 +9,7 @@ public class Device {
     private String status;
     private String macAddress;
     private SocketClient client;
+    private boolean isSelected;
 
     public Device(String name, String ip, String mac) {
         this.name = name;
@@ -30,7 +31,7 @@ public class Device {
         this.client = client;
     }
 
-    public boolean compareDevices(Device dev2) {
+    public boolean compareDevices(Device dev2) { // compare if two devices are the same
         return this.name.equalsIgnoreCase(dev2.name) &&
                 this.ipAddress.equalsIgnoreCase(dev2.ipAddress) &&
                 this.os.equalsIgnoreCase(dev2.os) &&
@@ -84,6 +85,14 @@ public class Device {
 
     public void setClient(SocketClient client) {
         this.client = client;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
     }
 
     @NonNull

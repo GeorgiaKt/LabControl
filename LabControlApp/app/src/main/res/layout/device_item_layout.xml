@@ -68,5 +68,12 @@
                     app:srcCompat="@drawable/black_circle" />
             </LinearLayout>
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/checkmarkImageView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:visibility="gone"
+            app:srcCompat="@drawable/black_round_checkmark" />
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

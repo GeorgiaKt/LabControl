@@ -1,6 +1,9 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -16,18 +19,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesConnectedCallback {
+    // ui components
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
-    DeviceAdapter deviceAdapter;
-    DeviceManager deviceManager;
     ProgressBar progressBar;
+    // core components
+    DeviceManager deviceManager;
+    DeviceAdapter deviceAdapter;
+    ActionMode actionMode; // for multiple item selection
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        EdgeToEdge.enable(this);
+        EdgeToEdge.enable(this); // edge to edge layout
 
         setContentView(R.layout.activity_main);
 
@@ -51,22 +57,66 @@ public class MainActivity extends AppCompatActivity {
         deviceManager = new DeviceManager(this);
         deviceManager.initializeDevices();
 
-        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this);
+        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this, this);
         recyclerView.setAdapter(deviceAdapter);
 
-        deviceManager.connectDevices(deviceAdapter, () -> {
-            progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
-            recyclerView.setEnabled(true); // enable interactions
-        });
+        deviceManager.connectDevices(deviceAdapter, this);
 
     }
-
 
     @Override
     protected void onDestroy() {
         deviceManager.disconnectDevices();
         super.onDestroy();
     }
+
+    // callback for contextual action bar (multi-selection mode)
+    ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            actionMode.getMenuInflater().inflate(R.menu.multiple_selection_bar_menu, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            if (menuItem.getItemId() == R.id.echoMenuItem) {
+
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.restartMenuItem) {
+
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.shutDownMenuItem) {
+
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.restoreMenuItem) {
+
+                actionMode.finish();
+                return true;
+            } else if (menuItem.getItemId() == R.id.wakeMenuItem) {
+
+                actionMode.finish();
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+            deviceManager.clearSelection();
+            deviceAdapter.notifyDataSetChanged();
+        }
+    };
 
 
     public void displayToast(String s) {
@@ -79,6 +129,48 @@ public class MainActivity extends AppCompatActivity {
                     toast.show();
                 }
             });
+    }
+
+    @Override
+    public void onDeviceClickListener(int position) {
+        if (actionMode != null) { // if contextual action bar is activated
+            deviceManager.toggleSelection(position);
+            deviceAdapter.notifyItemChanged(position);
+            updateContextualBarTitle();
+
+            // end action mode if no items are selected
+            if (deviceManager.getSelectedDevices().isEmpty()) {
+                actionMode.finish();
+            }
+        }
+    }
+
+    @Override
+    public void onDeviceLongClickListener(int position) { // called when a device is long-pressed
+        if (actionMode == null) { // if there isn't a contextual action bar already activated
+            actionMode = startActionMode(actionModeCallback);
+        }
+        deviceManager.toggleSelection(position);
+        deviceAdapter.notifyItemChanged(position);
+        updateContextualBarTitle();
+
+        // end action mode if no items are selected
+        if (deviceManager.getSelectedDevices().isEmpty()) {
+            actionMode.finish();
+        }
+    }
+
+    @Override
+    public void onAllDevicesConnected() { // called when all threads for device connecting finish
+        progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
+        recyclerView.setEnabled(true); // enable interactions
+    }
+
+
+    public void updateContextualBarTitle() {
+        // add as a title of the cab the number of selected devices
+        int selectedCount = deviceManager.getSelectedDevices().size();
+        actionMode.setTitle(selectedCount + "");
     }
 
 }

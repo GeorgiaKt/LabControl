@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- icons at 31 dp -->
+    <item
+        android:id="@+id/optionsMenuItem"
+        android:icon="@drawable/dots_vertical"
+        android:title="@string/optionsMenuItemText"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/echoMenuItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/sync"
+                android:title="@string/echoMenuItemText" />
+            <item
+                android:id="@+id/restartMenuItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/restart"
+                android:title="@string/restartMenuItemText" />
+            <item
+                android:id="@+id/shutDownMenuItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/power"
+                android:title="@string/shutdownMenuItemText" />
+            <item
+                android:id="@+id/restoreMenuItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/restore"
+                android:title="@string/restoreMenuItemText" />
+            <item
+                android:id="@+id/wakeMenuItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/flash"
+                android:title="@string/wakeMenuItemText" />
+        </menu>
+    </item>
+</menu>
