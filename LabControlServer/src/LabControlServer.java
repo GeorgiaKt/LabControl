@@ -1,8 +1,10 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class LabControlServer {
     private final int port;
@@ -74,5 +76,19 @@ public class LabControlServer {
             inputStream = null;
             comSocket = null;
         }
+    }
+
+    private String getOperatingSystem() {
+        return System.getProperty("os.name");
+    }
+
+    private String getSystemName() {
+        String systemName = null;
+        try {
+            systemName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+        return systemName;
     }
 }
