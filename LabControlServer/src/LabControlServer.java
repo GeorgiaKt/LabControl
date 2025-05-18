@@ -35,6 +35,13 @@ public class LabControlServer {
             System.out.println("Server is running..");
             while (true) {
                 labControlServer.establishSocketConnection();
+                while (true) {
+                    switch (labControlServer.receiveMessage()) {
+                        case "echo":
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - " + labControlServer.getOperatingSystem());
+                            System.out.println("Echo from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                    }
+                }
             }
         }
     }
@@ -90,5 +97,24 @@ public class LabControlServer {
             throw new RuntimeException(e);
         }
         return systemName;
+    }
+
+    private void sendMessage(String message) {
+        try {
+            outputStream.writeObject(message);
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String receiveMessage() {
+        String response;
+        try {
+            response = (String) inputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return response;
     }
 }

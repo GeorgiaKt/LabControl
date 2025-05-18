@@ -31,6 +31,8 @@ public class SocketClient {
             SocketAddress serverAddress = new InetSocketAddress(serverIP, Constants.SERVER_PORT);
             comSocket.connect(serverAddress, Constants.CONNECT_TIMEOUT); // connect to server with a 5 seconds timeout
 
+            comSocket.setSoTimeout(Constants.CONNECT_TIMEOUT); // set a timeout in case the object stream blocks the app
+
             outputStream = new ObjectOutputStream(comSocket.getOutputStream());
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
@@ -68,6 +70,25 @@ public class SocketClient {
             inputStream = null;
             comSocket = null;
         }
+    }
+
+    public synchronized void sendMessage(String message) {
+        try {
+            outputStream.writeObject(message);
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public synchronized String receiveMessage() {
+        String response;
+        try {
+            response = (String) inputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return response;
     }
 
 }

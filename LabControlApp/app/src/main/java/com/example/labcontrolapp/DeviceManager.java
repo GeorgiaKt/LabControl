@@ -1,11 +1,16 @@
 package com.example.labcontrolapp;
 
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DeviceManager {
     private ArrayList<Device> devicesList = new ArrayList<>();
     private final MainActivity mainActivity;
+    private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
     public DeviceManager(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -38,10 +43,14 @@ public class DeviceManager {
             dev.attachSocketClient(new SocketClient()); // attach socket client to each device
             devicesList.add(dev);
         }
+
+//        Device device = new Device("Desktop", "192.168.1.1", "idkmac");
+//        device.attachSocketClient(new SocketClient());
+//        devicesList.add(device);
     }
 
 
-    public void connectDevices(DeviceAdapter adapter, OnDevicesConnectedCallback onFinishedCallback) {
+    public void connectDevices(DeviceAdapter adapter, OnDevicesCallback onFinishedCallback) {
         AtomicInteger completed = new AtomicInteger(0); // thread-safe counter for the number of threads that completed the connection
         int total = devicesList.size();
 
@@ -102,5 +111,39 @@ public class DeviceManager {
         boolean sel = devicesList.get(position).isSelected();
         devicesList.get(position).setSelected(!sel); // toggle selection of the device
     }
+
+    public void handleMessageExchange(String message) { // exchange messages with selected devices
+        ArrayList<Device> selectedDevices = getSelectedDevices();
+        for (Device dev : selectedDevices) {
+            if (dev.getStatus().equalsIgnoreCase("online")) { // send the command only if the selected device is online
+                executor.submit(() -> {
+                    dev.getClient().sendMessage(message);
+                    String response = dev.getClient().receiveMessage();
+//                    if (message.equalsIgnoreCase("restore")) // when restore command is sent, app receives 2 responses
+//                        response = dev.getClient().receiveMessage();
+                    handleResponse(dev, message, response);
+                });
+            }
+        }
+
+
+    }
+
+    private void handleResponse(Device dev, String message, String response) {
+        switch (message) {
+            case "echo":
+                updateInfo(dev, response);
+        }
+    }
+
+    private void updateInfo(Device dev, String response) {
+        String[] parts = response.split(" - ");
+        if (parts.length == 2) {
+            dev.setName(parts[0]);
+            dev.setOs(parts[1]);
+            Log.d("DeviceManager Echo ", dev.getName() + dev.getOs());
+        }
+    }
+
 
 }

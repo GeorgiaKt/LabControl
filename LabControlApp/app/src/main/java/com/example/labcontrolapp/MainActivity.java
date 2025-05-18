@@ -1,6 +1,7 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 
 
-public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesConnectedCallback {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback {
     // ui components
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
@@ -87,8 +88,8 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
         @Override
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-            if (menuItem.getItemId() == R.id.echoMenuItem) {
-
+            if (menuItem.getItemId() == R.id.echoMenuItem) { // echo
+                deviceManager.handleMessageExchange("echo");
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.restartMenuItem) {
