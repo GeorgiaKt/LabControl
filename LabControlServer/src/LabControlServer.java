@@ -36,10 +36,40 @@ public class LabControlServer {
             while (true) {
                 labControlServer.establishSocketConnection();
                 while (true) {
-                    switch (labControlServer.receiveMessage()) {
+                    String command = null;
+                    try {
+                        command = labControlServer.receiveMessage();
+                    } catch (RuntimeException e) {
+                        System.out.println("Client disconnected or error: " + e.getMessage());
+                        break; // break inner loop
+                    }
+
+                    if (command == null)
+                        break; // null means client disconnected
+
+                    switch (command) {
                         case "echo":
                             labControlServer.sendMessage(labControlServer.getSystemName() + " - " + labControlServer.getOperatingSystem());
                             System.out.println("Echo from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            break;
+                        case "restart":
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " Rebooting...");
+                            System.out.println("Restart from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            break;
+                        case "shutdown":
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " Shutting down...");
+                            System.out.println("Shut down from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            break;
+                        case "restore":
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - Restoring...");
+                            try {
+                                Thread.sleep(90000); // sleep for 90 seconds
+                                labControlServer.sendMessage(labControlServer.getSystemName() + " - Restored");
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            System.out.println("Restore from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            break;
                     }
                 }
             }
@@ -113,7 +143,7 @@ public class LabControlServer {
         try {
             response = (String) inputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            return null;
         }
         return response;
     }

@@ -118,10 +118,12 @@ public class DeviceManager {
             if (dev.getStatus().equalsIgnoreCase("online")) { // send the command only if the selected device is online
                 executor.submit(() -> {
                     dev.getClient().sendMessage(message);
-                    String response = dev.getClient().receiveMessage();
-//                    if (message.equalsIgnoreCase("restore")) // when restore command is sent, app receives 2 responses
+//                    String response = dev.getClient().receiveMessage();
+//                    handleResponse(dev, message, response);
+//                    if (message.equalsIgnoreCase(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
 //                        response = dev.getClient().receiveMessage();
-                    handleResponse(dev, message, response);
+//                        handleResponse(dev, message, response);
+//                    }
                 });
             }
         }
@@ -129,21 +131,7 @@ public class DeviceManager {
 
     }
 
-    private void handleResponse(Device dev, String message, String response) {
-        switch (message) {
-            case "echo":
-                updateInfo(dev, response);
-        }
-    }
 
-    private void updateInfo(Device dev, String response) {
-        String[] parts = response.split(" - ");
-        if (parts.length == 2) {
-            dev.setName(parts[0]);
-            dev.setOs(parts[1]);
-            Log.d("DeviceManager Echo ", dev.getName() + dev.getOs());
-        }
-    }
 
 
 }

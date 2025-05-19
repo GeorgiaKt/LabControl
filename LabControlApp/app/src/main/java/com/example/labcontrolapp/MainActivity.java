@@ -89,19 +89,19 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         @Override
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             if (menuItem.getItemId() == R.id.echoMenuItem) { // echo
-                deviceManager.handleMessageExchange("echo");
+                deviceManager.handleMessageExchange(Constants.COMMAND_ECHO);
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.restartMenuItem) {
-
+                deviceManager.handleMessageExchange(Constants.COMMAND_RESTART);
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.shutDownMenuItem) {
-
+                deviceManager.handleMessageExchange(Constants.COMMAND_SHUTDOWN);
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.restoreMenuItem) {
-
+                deviceManager.handleMessageExchange(Constants.COMMAND_RESTORE);
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.wakeMenuItem) {

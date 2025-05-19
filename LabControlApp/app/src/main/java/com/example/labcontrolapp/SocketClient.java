@@ -72,7 +72,7 @@ public class SocketClient {
         }
     }
 
-    public synchronized void sendMessage(String message) {
+    public synchronized void sendMessage(String message) { // synchronized since being accessed via multiple threads
         try {
             outputStream.writeObject(message);
             outputStream.flush();
