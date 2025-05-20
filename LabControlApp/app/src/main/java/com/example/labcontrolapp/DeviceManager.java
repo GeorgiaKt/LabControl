@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DeviceManager {
     private ArrayList<Device> devicesList = new ArrayList<>();
     private final MainActivity mainActivity;
-    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private final ExecutorService connectionExecutor = Executors.newFixedThreadPool(27); // use 27 threads
+    private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27);
 
     public DeviceManager(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -54,27 +55,23 @@ public class DeviceManager {
             final int index = i;
             Device dev = devicesList.get(i);
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    boolean connectionResult = dev.getClient().connect(Constants.DEFAULT_SERVER_IP); // connect( dev.getIpAddress() )
-                    if (connectionResult)
-                        dev.setStatus(Constants.STATUS_ONLINE);
-                    else
-                        dev.setStatus(Constants.STATUS_OFFLINE);
+            connectionExecutor.submit(() -> {
+                boolean connectionResult = dev.getClient().connect(Constants.DEFAULT_SERVER_IP); // connect( dev.getIpAddress() )
+                if (connectionResult)
+                    dev.setStatus(Constants.STATUS_ONLINE);
+                else
+                    dev.setStatus(Constants.STATUS_OFFLINE);
 
-                    mainActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyItemChanged(index); // update ui
-                            if (completed.incrementAndGet() == total) {
-                                onFinishedCallback.onAllDevicesConnected(); // inform when all finish
-                            }
+                mainActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyItemChanged(index); // update ui
+                        if (completed.incrementAndGet() == total) {
+                            onFinishedCallback.onAllDevicesConnected(); // inform when all finish
                         }
-                    });
-                }
-            }).start();
-
+                    }
+                });
+            });
         }
 
     }
@@ -111,16 +108,19 @@ public class DeviceManager {
     public void handleMessageExchange(String message) { // exchange messages with selected devices
         ArrayList<Device> selectedDevices = getSelectedDevices();
         for (Device dev : selectedDevices) {
-            if (dev.getStatus().equalsIgnoreCase(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
-                executor.submit(() -> {
+            if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
+                messageExecutor.submit(() -> {
                     dev.getClient().sendMessage(message);
                     String response = dev.getClient().receiveMessage();
                     handleResponse(dev, message, response);
-                    if (message.equalsIgnoreCase(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
-                        dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
-                        response = dev.getClient().receiveMessage();
-                        handleResponse(dev, message, response);
-                        dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
+                    if (message.equals(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
+                        try { // in case failure occurs, reset timeout
+                            dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
+                            response = dev.getClient().receiveMessage();
+                            handleResponse(dev, message, response);
+                        } finally {
+                            dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
+                        }
                     }
                 });
             }
@@ -154,5 +154,22 @@ public class DeviceManager {
         }
     }
 
+    public void shutdownExecutors() {
+        shutdownExecutor(connectionExecutor);
+        shutdownExecutor(messageExecutor);
+    }
+
+    private void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown(); // stop the executor from accepting new tasks
+        try {
+            // wait up to 3 seconds for existing tasks to finish
+            if (!executor.awaitTermination(3, java.util.concurrent.TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // if they didn't finish within the timeout, shut down executor by interrupting them
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt(); // restore interrupted status
+        }
+    }
 
 }

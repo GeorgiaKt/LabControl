@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     @Override
     protected void onDestroy() {
+        deviceManager.shutdownExecutors();
         deviceManager.disconnectDevices();
         super.onDestroy();
     }
