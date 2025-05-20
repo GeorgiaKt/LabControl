@@ -1,7 +1,5 @@
 package com.example.labcontrolapp;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 public class Device {
@@ -105,52 +103,6 @@ public class Device {
                 getOs() + " " +
                 getStatus() + " " +
                 getMacAddress() + " ";
-    }
-
-
-    private void handleResponse(String response) {
-        if (response.contains(" - ")) {
-            // split to parts to determine the command executed
-            String[] parts = response.split(" - ");
-            String message = "";
-            if (parts.length == 2) {
-                switch (parts[1]) {
-                    case "Rebooting...":
-                        message = Constants.COMMAND_RESTART;
-                        break;
-                    case "Shutting down...":
-                        message = Constants.COMMAND_SHUTDOWN;
-                        break;
-                    case "Restoring...":
-                        message = Constants.COMMAND_RESTORE;
-                        break;
-                    case "Restored":
-                        message = Constants.COMMAND_RESTORE;
-                        break;
-                    default:
-                        message = Constants.COMMAND_ECHO;
-                        break;
-
-                }
-
-                // based on the command executed do the corresponding actions in app
-                switch (message) {
-                    case Constants.COMMAND_ECHO:
-                        setName(parts[0]);
-                        setOs(parts[1]);
-                        break;
-                    case Constants.COMMAND_RESTART:
-                        Log.d("DeviceManager RESTART RESPONSE", response);
-                        break;
-                    case Constants.COMMAND_SHUTDOWN:
-                        Log.d("DeviceManager SHUTDOWN RESPONSE", response);
-                        break;
-                    case Constants.COMMAND_RESTORE:
-                        Log.d("DeviceManager RESTORE RESPONSE", response);
-                        break;
-                }
-            }
-        }
     }
 
 }

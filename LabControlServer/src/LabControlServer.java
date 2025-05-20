@@ -49,26 +49,32 @@ public class LabControlServer {
 
                     switch (command) {
                         case "echo":
-                            labControlServer.sendMessage(labControlServer.getSystemName() + " - " + labControlServer.getOperatingSystem());
                             System.out.println("Echo from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - " + labControlServer.getOperatingSystem());
+                            System.out.println("Sent echo");
                             break;
                         case "restart":
-                            labControlServer.sendMessage(labControlServer.getSystemName() + " Rebooting...");
                             System.out.println("Restart from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " Rebooting...");
+                            System.out.println("Sent restart");
                             break;
                         case "shutdown":
-                            labControlServer.sendMessage(labControlServer.getSystemName() + " Shutting down...");
                             System.out.println("Shut down from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " Shutting down...");
+                            System.out.println("Sent shutdown");
                             break;
                         case "restore":
+                            System.out.println("Restore from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
                             labControlServer.sendMessage(labControlServer.getSystemName() + " - Restoring...");
+                            System.out.println("Sent restoring");
                             try {
                                 Thread.sleep(90000); // sleep for 90 seconds
                                 labControlServer.sendMessage(labControlServer.getSystemName() + " - Restored");
+                                System.out.println("Sent restored");
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
-                            System.out.println("Restore from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
+
                             break;
                     }
                 }

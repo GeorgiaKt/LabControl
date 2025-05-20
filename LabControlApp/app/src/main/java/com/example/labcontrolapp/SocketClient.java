@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 
 public class SocketClient {
     private String serverIP;
@@ -91,4 +92,13 @@ public class SocketClient {
         return response;
     }
 
+    public void setReadTimeout(int timeout) { // use this method to change read timeout whenever restore option is selected
+        try {
+            if (comSocket != null && !comSocket.isClosed())
+                comSocket.setSoTimeout(timeout);
+        } catch (SocketException e) {
+            Log.e("SocketClient", "Failed to set a new timeout");
+        }
+
+    }
 }

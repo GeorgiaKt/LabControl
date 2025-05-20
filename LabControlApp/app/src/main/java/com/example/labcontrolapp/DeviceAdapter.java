@@ -55,9 +55,9 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         holder.checkmarkImageView.setImageResource(R.drawable.black_round_checkmark);
 
         // change status icon based on data
-        if ("Online".equalsIgnoreCase(device.getStatus()))
+        if (Constants.STATUS_ONLINE.equalsIgnoreCase(device.getStatus()))
             holder.statusImageView.setImageResource(R.drawable.green_circle);
-        else if ("Offline".equalsIgnoreCase(device.getStatus()))
+        else if (Constants.STATUS_OFFLINE.equalsIgnoreCase(device.getStatus()))
             holder.statusImageView.setImageResource(R.drawable.red_circle);
         else
             holder.statusImageView.setImageResource(R.drawable.black_circle); // default status icon (black)

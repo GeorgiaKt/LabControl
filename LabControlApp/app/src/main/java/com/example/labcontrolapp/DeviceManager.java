@@ -43,10 +43,6 @@ public class DeviceManager {
             dev.attachSocketClient(new SocketClient()); // attach socket client to each device
             devicesList.add(dev);
         }
-
-//        Device device = new Device("Desktop", "192.168.1.1", "idkmac");
-//        device.attachSocketClient(new SocketClient());
-//        devicesList.add(device);
     }
 
 
@@ -63,9 +59,9 @@ public class DeviceManager {
                 public void run() {
                     boolean connectionResult = dev.getClient().connect(Constants.DEFAULT_SERVER_IP); // connect( dev.getIpAddress() )
                     if (connectionResult)
-                        dev.setStatus("Online");
+                        dev.setStatus(Constants.STATUS_ONLINE);
                     else
-                        dev.setStatus("Offline");
+                        dev.setStatus(Constants.STATUS_OFFLINE);
 
                     mainActivity.runOnUiThread(new Runnable() {
                         @Override
@@ -115,23 +111,48 @@ public class DeviceManager {
     public void handleMessageExchange(String message) { // exchange messages with selected devices
         ArrayList<Device> selectedDevices = getSelectedDevices();
         for (Device dev : selectedDevices) {
-            if (dev.getStatus().equalsIgnoreCase("online")) { // send the command only if the selected device is online
+            if (dev.getStatus().equalsIgnoreCase(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
                 executor.submit(() -> {
                     dev.getClient().sendMessage(message);
-//                    String response = dev.getClient().receiveMessage();
-//                    handleResponse(dev, message, response);
-//                    if (message.equalsIgnoreCase(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
-//                        response = dev.getClient().receiveMessage();
-//                        handleResponse(dev, message, response);
-//                    }
+                    String response = dev.getClient().receiveMessage();
+                    handleResponse(dev, message, response);
+                    if (message.equalsIgnoreCase(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
+                        dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
+                        response = dev.getClient().receiveMessage();
+                        handleResponse(dev, message, response);
+                        dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
+                    }
                 });
             }
         }
 
-
     }
 
-
+    public void handleResponse(Device dev, String message, String response) {
+        // based on the command executed do the corresponding actions in app
+        switch (message) {
+            case Constants.COMMAND_ECHO:
+                if (response.contains(" - ")) {
+                    String[] parts = response.split(" - ");
+                    if (parts.length == 2) {
+                        dev.setName(parts[0]);
+                        dev.setOs(parts[1]);
+                        Log.d("DeviceManager ECHO", response);
+                    }
+                }
+                break;
+            case Constants.COMMAND_RESTART:
+                Log.d("DeviceManager RESTART", response);
+                break;
+            case Constants.COMMAND_SHUTDOWN:
+                dev.setStatus(Constants.STATUS_OFFLINE); // update status on screen
+                Log.d("DeviceManager SHUTDOWN", response);
+                break;
+            case Constants.COMMAND_RESTORE:
+                Log.d("DeviceManager RESTORE", response);
+                break;
+        }
+    }
 
 
 }
