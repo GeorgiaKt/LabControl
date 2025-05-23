@@ -1,7 +1,6 @@
 package com.example.labcontrolapp;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 
 
-public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback, NetworkMonitor.NetworkStateListener {
     // ui components
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
@@ -30,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     DeviceAdapter deviceAdapter;
     ActionMode actionMode; // for multiple item selection
     View blockingOverlay; // overlay for blocking interactions while loading
+    NetworkMonitor networkMonitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +44,10 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        networkMonitor = new NetworkMonitor(this, this);
+        networkMonitor.start();
+
 
         toolbar = findViewById(R.id.materialToolbar);
         recyclerView = findViewById(R.id.recyclerView);
@@ -72,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         deviceManager.shutdownExecutors();
         deviceManager.disconnectDevices();
         super.onDestroy();
+        if (networkMonitor != null) {
+            networkMonitor.stop();
+        }
     }
 
     // callback for contextual action bar (multi-selection mode)
@@ -177,4 +184,13 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         actionMode.setTitle(selectedCount + "");
     }
 
+    @Override
+    public void onNetworkAvailable() {
+        displayToast("Connected");
+    }
+
+    @Override
+    public void onNetworkUnavailable() {
+        displayToast("Disconnected");
+    }
 }

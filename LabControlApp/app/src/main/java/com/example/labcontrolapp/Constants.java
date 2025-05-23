@@ -1,6 +1,7 @@
 package com.example.labcontrolapp;
 
 public class Constants {
+    public static final String LAB_SSID = "\"LAB_WIFI\"";
     public static final String DEFAULT_SERVER_IP = "10.0.2.2"; // 10.0.2.2 emulator's ip
     public static final int SERVER_PORT = 41007;
     public static final int CONNECT_TIMEOUT = 3000; // 5 seconds timeout

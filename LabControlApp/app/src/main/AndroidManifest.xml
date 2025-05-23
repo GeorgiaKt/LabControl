@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- to check if device is connected to the Internet -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
 
 
     <application
