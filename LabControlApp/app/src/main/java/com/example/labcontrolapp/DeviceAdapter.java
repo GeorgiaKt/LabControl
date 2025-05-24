@@ -15,24 +15,19 @@ import java.util.ArrayList;
 
 public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceViewHolder> {
     ArrayList<Device> devList; // list of displayed devices
-    private final Context context;
-    private final OnDeviceClickListener listener;
+    private Context context;
+    private OnDeviceClickListener listener;
 
-    public DeviceAdapter(ArrayList<Device> devicesList, Context ctx, OnDeviceClickListener listener) {
-        this.devList = new ArrayList<>(devicesList);
-        this.context = ctx;
-        this.listener = listener; // reference to Main Activity's listener
+    public DeviceAdapter() {
+        this.devList = new ArrayList<>();
     }
 
-    public void updateList(@NonNull ArrayList<Device> newList) {
-        // check for any changed devices and update it
-        for (int i = 0; i < newList.size(); i++) {
-            Device newDevice = newList.get(i);
-            if (!newDevice.compareDevices(devList.get(i))) {
-                devList.set(i, newDevice); // replace changed device
-                notifyItemChanged(i);      // refresh just that item
-            }
-        }
+    public void attachToAdapter(ArrayList<Device> devicesList, Context ctx, OnDeviceClickListener listener) {
+        this.devList.clear();
+        this.devList.addAll(devicesList);
+        this.context = ctx;
+        this.listener = listener; // reference to Main Activity's listener
+        notifyDataSetChanged();
     }
 
     @NonNull

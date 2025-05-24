@@ -56,32 +56,34 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             return insets;
         });
 
-        if (hasLocationPermission()) {
-            startNetworkMonitor();
-        } else {
-            requestLocationPermission();
-        }
-
         toolbar = findViewById(R.id.materialToolbar);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         blockingOverlay = findViewById(R.id.blockingOverlay);
 
         setSupportActionBar(toolbar);
-        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
-        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
-
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
 
         deviceManager = new DeviceManager(this);
-        deviceManager.initializeDevices();
-
-        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this, this);
+        deviceAdapter = new DeviceAdapter();
         recyclerView.setAdapter(deviceAdapter);
 
-        deviceManager.connectDevices(deviceAdapter, this);
+        if (hasLocationPermission()) {
+            startApp();
+        } else {
+            requestLocationPermission();
+        }
 
+    }
+
+    private void startApp() {
+        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
+        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
+        startNetworkMonitor();
+        deviceManager.initializeDevices();
+        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
+        deviceManager.connectDevices(deviceAdapter, this);
     }
 
     @Override
@@ -122,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startNetworkMonitor();
+                startApp();
                 Log.d("LocationPermission", "Permission Granted");
             } else {
                 // location permission denied
