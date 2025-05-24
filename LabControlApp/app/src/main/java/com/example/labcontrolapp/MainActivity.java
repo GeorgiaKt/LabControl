@@ -1,7 +1,10 @@
 package com.example.labcontrolapp;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
+import android.Manifest;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -9,7 +12,10 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -30,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     ActionMode actionMode; // for multiple item selection
     View blockingOverlay; // overlay for blocking interactions while loading
     NetworkMonitor networkMonitor;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +52,13 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             return insets;
         });
 
-        networkMonitor = new NetworkMonitor(this, this);
-        networkMonitor.start();
+        if (hasLocationPermission()) {
+            startNetworkMonitor();
+        } else {
+            requestLocationPermission();
+        }
 
+        Log.d("onCreate", "creating");
 
         toolbar = findViewById(R.id.materialToolbar);
         recyclerView = findViewById(R.id.recyclerView);
@@ -79,6 +90,34 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         if (networkMonitor != null) {
             networkMonitor.stop();
         }
+    }
+
+    private boolean hasLocationPermission() { // check if fine location permission has already been granted
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void startNetworkMonitor() {
+        networkMonitor = new NetworkMonitor(this, this);
+        networkMonitor.start();
+    }
+
+    private void requestLocationPermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE){
+            if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("onRequestPermissionResult", "permission granted");
+                startNetworkMonitor();
+            }
+
+        }
+
     }
 
     // callback for contextual action bar (multi-selection mode)
@@ -191,6 +230,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     @Override
     public void onNetworkUnavailable() {
-        displayToast("Disconnected");
+        displayToast("No internet connection available");
     }
 }

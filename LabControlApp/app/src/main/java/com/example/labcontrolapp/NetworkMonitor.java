@@ -5,6 +5,9 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -101,16 +104,23 @@ public class NetworkMonitor {
                 if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
                     isEthernet = true;
                 else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    isConnectedToLabWiFi();
                     isWiFi = true;
-
-//                    isConnectedToLab();
                 }
             }
 
         }
     }
 
-//    private boolean isConnectedToLab() {
-//
-//    }
+    private void isConnectedToLabWiFi() {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null){
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            if (wifiInfo !=null){
+                String ssid = wifiInfo.getSSID();
+                Log.d("NetworkMonitor", "SSID: " + ssid);
+            }
+
+        }
+    }
 }
