@@ -62,8 +62,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             requestLocationPermission();
         }
 
-        Log.d("onCreate", "creating");
-
         toolbar = findViewById(R.id.materialToolbar);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
@@ -87,6 +85,14 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (networkMonitor != null) {
+            networkMonitor.handleNetworkState(); // re-check location and network
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         deviceManager.shutdownExecutors();
         deviceManager.disconnectDevices();
@@ -102,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     private void startNetworkMonitor() {
-        networkMonitor = new NetworkMonitor(this, this);
+        networkMonitor = new NetworkMonitor(this, this, this);
         networkMonitor.start();
     }
 
@@ -114,8 +120,8 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE){
-            if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startNetworkMonitor();
                 Log.d("LocationPermission", "Permission Granted");
             } else {
@@ -126,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                     Log.d("LocationPermission", "Permission Denied Permanently");
                 } else {
                     // denied temporarily — explain again
-                    showExplanationDialogAgain();
+                    showExplanationDialog();
                     Log.d("LocationPermission", "Permission Denied Temporarily");
                 }
             }
@@ -139,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Permission Required")
                 .setMessage("Location permission is permanently denied. Please enable it from app settings.")
+                .setCancelable(false)
                 .setPositiveButton("Open Settings", (dialog, which) -> {
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                     Uri uri = Uri.fromParts("package", getPackageName(), null);
@@ -149,10 +156,11 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                 .show();
     }
 
-    private void showExplanationDialogAgain() {
+    private void showExplanationDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Location Permission Needed")
                 .setMessage("Lab Control needs location permission to detect the lab Wi-Fi network.")
+                .setCancelable(false)
                 .setPositiveButton("Try Again", (dialog, which) -> {
                     requestLocationPermission();
                 })
