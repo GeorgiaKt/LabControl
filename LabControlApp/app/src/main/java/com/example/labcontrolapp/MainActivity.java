@@ -1,7 +1,10 @@
 package com.example.labcontrolapp;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
 import android.Manifest;
@@ -23,6 +26,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 
 public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback, NetworkMonitor.NetworkStateListener {
@@ -112,13 +116,50 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == LOCATION_PERMISSION_REQUEST_CODE){
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("onRequestPermissionResult", "permission granted");
                 startNetworkMonitor();
+                Log.d("LocationPermission", "Permission Granted");
+            } else {
+                // location permission denied
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    // denied permanently — guide user to settings
+                    showSettingsDialog();
+                    Log.d("LocationPermission", "Permission Denied Permanently");
+                } else {
+                    // denied temporarily — explain again
+                    showExplanationDialogAgain();
+                    Log.d("LocationPermission", "Permission Denied Temporarily");
+                }
             }
 
         }
 
     }
+
+    private void showSettingsDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Permission Required")
+                .setMessage("Location permission is permanently denied. Please enable it from app settings.")
+                .setPositiveButton("Open Settings", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Exit App", (dialog, which) -> finish())
+                .show();
+    }
+
+    private void showExplanationDialogAgain() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Location Permission Needed")
+                .setMessage("Lab Control needs location permission to detect the lab Wi-Fi network.")
+                .setPositiveButton("Try Again", (dialog, which) -> {
+                    requestLocationPermission();
+                })
+                .setNegativeButton("Exit App", (dialog, which) -> finish())
+                .show();
+    }
+
 
     // callback for contextual action bar (multi-selection mode)
     ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
