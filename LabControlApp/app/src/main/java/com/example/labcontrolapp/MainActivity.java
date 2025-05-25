@@ -75,10 +75,19 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         recyclerView.setAdapter(deviceAdapter);
 
         if (hasLocationPermission())
-            startApp();
+            checkNetworkMonitor();
         else
             requestLocationPermission();
 
+    }
+
+    private void checkNetworkMonitor() {
+        if (networkMonitor == null) {
+            networkMonitor = new NetworkMonitor(this, this, this);
+            networkMonitor.start();
+        } else {
+            networkMonitor.handleNetworkState();
+        }
     }
 
     private void startApp() { // startApp() is executed only the 1st time
@@ -86,10 +95,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             return;
         progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
         blockingOverlay.setVisibility(View.VISIBLE); // block interactions
-        if (networkMonitor == null) {
-            networkMonitor = new NetworkMonitor(this, this, this);
-            networkMonitor.start();
-        }
         deviceManager.initializeDevices();
         deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
         deviceManager.connectDevices(deviceAdapter, this);
@@ -108,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         // check if location permission is granted
         if (hasLocationPermission()) {
             if (!appStarted) { // start app if it hasn't started
-                startApp();
+                checkNetworkMonitor();
                 deniedPermanentlyPermission = false;
             }
         } else { // permission not granted
@@ -151,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startApp();
+                checkNetworkMonitor();
                 Log.d("LocationPermission", "Permission Granted");
             } else {
                 // location permission denied
@@ -304,11 +309,18 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     @Override
     public void onNetworkAvailable() {
-        displayToast("Connected");
+        if (!appStarted)
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
+                    startApp();
+                }
+            });
     }
 
     @Override
     public void onNetworkUnavailable() {
-        displayToast("No internet connection available");
+        displayToast("Network Unavailable");
     }
 }

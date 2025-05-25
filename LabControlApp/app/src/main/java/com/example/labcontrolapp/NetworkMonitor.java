@@ -163,9 +163,7 @@ public class NetworkMonitor {
                     if (isConnectedToLabWiFi())
                         isWiFi = true;
                 }
-
             }
-
         }
     }
 
@@ -177,7 +175,7 @@ public class NetworkMonitor {
                     if (labDialog == null || !labDialog.isShowing()) // if no new dialog instance exists or exists but is not visible
                         labDialog = new MaterialAlertDialogBuilder(mainActivity)
                                 .setTitle("Lab Network Required")
-                                .setMessage("Lab Control only works when connected to the lab's LAN network. Ensure you are on the correct LAN (via Wi-Fi or Ethernet).")
+                                .setMessage("Lab Control only works when connected to the lab's network. Ensure you are on the correct LAN (via Wi-Fi or Ethernet).")
                                 .setCancelable(false)
                                 .setPositiveButton("Open Settings", (dialog, which) -> {
                                     Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
