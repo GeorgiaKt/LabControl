@@ -26,9 +26,11 @@ public class NetworkMonitor {
     private ConnectivityManager.NetworkCallback networkCallback;
     private boolean isEthernet = false;
     private boolean isWiFi = false;
+    private boolean locationEnabled = false;
     private final NetworkStateListener listener;
     private MainActivity mainActivity;
     private Dialog locationDialog;
+    private Dialog labDialog;
 
     // listener to notify app about connectivity changes
     public interface NetworkStateListener {
@@ -93,6 +95,13 @@ public class NetworkMonitor {
         checkLocationState();
         checkNetworkState();
 
+        if (locationEnabled){
+            if (!isEthernet && !isWiFi) // if not connected to lab's LAN
+                showLabDialog();
+            else if (labDialog != null && labDialog.isShowing())
+                labDialog.dismiss();
+        }
+
         boolean wasConnected = wasEthernet || wasWiFi;
         boolean isConnected = isEthernet || isWiFi;
         if (isConnected != wasConnected) // if there is a connectivity change
@@ -107,9 +116,11 @@ public class NetworkMonitor {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         if (locationManager != null) {
             if (!isLocationEnabled(locationManager)) { // if location is disabled
+                locationEnabled = false;
                 // show alert dialog prompting user to turn on location services
                 showLocationDialog();
             } else {
+                locationEnabled = true;
                 if (locationDialog != null && locationDialog.isShowing()) // if there is a visible dialog, close it
                     locationDialog.dismiss();
             }
@@ -149,22 +160,48 @@ public class NetworkMonitor {
                 if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
                     isEthernet = true;
                 else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                    isConnectedToLabWiFi();
-                    isWiFi = true;
+                    if (isConnectedToLabWiFi())
+                        isWiFi = true;
                 }
+
             }
 
         }
     }
 
-    private void isConnectedToLabWiFi() {
+    private void showLabDialog() {
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (!mainActivity.isFinishing() && !mainActivity.isDestroyed()) {
+                    if (labDialog == null || !labDialog.isShowing()) // if no new dialog instance exists or exists but is not visible
+                        labDialog = new MaterialAlertDialogBuilder(mainActivity)
+                                .setTitle("Lab Network Required")
+                                .setMessage("Lab Control only works when connected to the lab's LAN network. Ensure you are on the correct LAN (via Wi-Fi or Ethernet).")
+                                .setCancelable(false)
+                                .setPositiveButton("Open Settings", (dialog, which) -> {
+                                    Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                                    mainActivity.startActivity(intent);
+                                })
+                                .show();
+                }
+            }
+        });
+    }
+
+    private boolean isConnectedToLabWiFi() {
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         if (wifiManager != null) {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             if (wifiInfo != null) {
-                String ssid = wifiInfo.getSSID();
-                Log.d("NetworkMonitor", "SSID: " + ssid);
+                if (locationEnabled) {
+                    String ssid = wifiInfo.getSSID();
+                    Log.d("NetworkMonitor", "SSID: " + ssid);
+                    if (ssid != null && ssid.equals(Constants.LAB_SSID))
+                        return true;
+                }
             }
         }
+        return false;
     }
 }
