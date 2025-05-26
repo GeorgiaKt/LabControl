@@ -22,15 +22,19 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class NetworkMonitor {
     private Context context;
     private ConnectivityManager connectivityManager;
-
+    private NetworkRequest networkRequest;
     private ConnectivityManager.NetworkCallback networkCallback;
-    private boolean isEthernet = false;
-    private boolean isWiFi = false;
-    private boolean locationEnabled = false;
     private final NetworkStateListener listener;
     private MainActivity mainActivity;
     private Dialog locationDialog;
     private Dialog labDialog;
+    // flags to check network and location status
+    private boolean isEthernet = false;
+    private boolean isWiFi = false;
+    private boolean locationEnabled = false;
+    private boolean newConnection = false;
+    private boolean wasConnected = false;
+
 
     // listener to notify app about connectivity changes
     public interface NetworkStateListener {
@@ -47,10 +51,10 @@ public class NetworkMonitor {
     }
 
     public void start() {
-        if (connectivityManager == null)
+        if (connectivityManager == null || networkCallback != null)
             return;
 
-        NetworkRequest networkRequest = new NetworkRequest.Builder() // type of networks want to listen to: internet capability via wifi/ethernet
+        networkRequest = new NetworkRequest.Builder() // type of networks want to listen to: internet capability via wifi/ethernet
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
@@ -60,6 +64,7 @@ public class NetworkMonitor {
             @Override
             public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
+                newConnection = true;
                 handleNetworkState();
             }
 
@@ -83,32 +88,33 @@ public class NetworkMonitor {
     public void stop() {
         if (connectivityManager != null && networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
+            networkCallback = null;
         }
     }
 
-
     public void handleNetworkState() {
-        // previous state
-        boolean wasEthernet = isEthernet;
-        boolean wasWiFi = isWiFi;
-
         checkLocationState();
         checkNetworkState();
 
-        if (locationEnabled){
-            if (!isEthernet && !isWiFi) // if not connected to lab's LAN
+        boolean isConnected = isEthernet || isWiFi;
+
+        if (locationEnabled) {
+            if (!isConnected) // if not connected to lab's LAN
                 showLabDialog();
             else if (labDialog != null && labDialog.isShowing())
                 labDialog.dismiss();
         }
-
-        boolean wasConnected = wasEthernet || wasWiFi;
-        boolean isConnected = isEthernet || isWiFi;
-        if (isConnected != wasConnected) // if there is a connectivity change
-            if (isConnected)
+        if (!wasConnected && isConnected) { // if there was a connection change
+            if (newConnection) { // new connection
+                Log.d("NetworkMonitor", "Connected to new network");
+                newConnection = false;
                 listener.onNetworkAvailable();
-            else
-                listener.onNetworkUnavailable();
+            }
+        }
+//        else if (wasConnected && !isConnected) {
+//            listener.onNetworkUnavailable();
+//        }
+        wasConnected = isConnected;
 
     }
 

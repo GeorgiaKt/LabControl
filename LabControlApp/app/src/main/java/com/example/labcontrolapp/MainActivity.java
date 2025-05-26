@@ -90,15 +90,19 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         }
     }
 
-    private void startApp() { // startApp() is executed only the 1st time
-        if (appStarted)
-            return;
+    private void startApp() {
         progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
         blockingOverlay.setVisibility(View.VISIBLE); // block interactions
-        deviceManager.initializeDevices();
+        if (!appStarted) { // 1st time
+            deviceManager.initializeDevices();
+            appStarted = true;
+        } else { // when network changes occur, re-connect
+            deviceManager.disconnectDevices();
+            deviceManager.initializeDevices();
+        }
+
         deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
         deviceManager.connectDevices(deviceAdapter, this);
-        appStarted = true;
     }
 
     @Override
@@ -144,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
-
 
     private void requestLocationPermission() {
         ActivityCompat.requestPermissions(this,
@@ -300,7 +303,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         blockingOverlay.setVisibility(View.GONE); // allow interactions
     }
 
-
     public void updateContextualBarTitle() {
         // add as a title of the cab the number of selected devices
         int selectedCount = deviceManager.getSelectedDevices().size();
@@ -309,14 +311,13 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     @Override
     public void onNetworkAvailable() {
-        if (!appStarted)
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
-                    startApp();
-                }
-            });
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
+                startApp();
+            }
+        });
     }
 
     @Override
