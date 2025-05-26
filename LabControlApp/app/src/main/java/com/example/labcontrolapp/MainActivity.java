@@ -1,8 +1,14 @@
 package com.example.labcontrolapp;
 
+import android.app.Dialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
+import android.Manifest;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,7 +16,10 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,9 +27,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 
-public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback, NetworkMonitor.NetworkStateListener {
     // ui components
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
@@ -30,6 +40,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     DeviceAdapter deviceAdapter;
     ActionMode actionMode; // for multiple item selection
     View blockingOverlay; // overlay for blocking interactions while loading
+    NetworkMonitor networkMonitor;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private Dialog settingsDialog, explanationDialog;
+    // booleans needed for managing location permission dialogs
+    private boolean appStarted = false;
+    private boolean deniedPermanentlyPermission = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,28 +67,145 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         blockingOverlay = findViewById(R.id.blockingOverlay);
 
         setSupportActionBar(toolbar);
-        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
-        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
-
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
 
         deviceManager = new DeviceManager(this);
-        deviceManager.initializeDevices();
-
-        deviceAdapter = new DeviceAdapter(deviceManager.getDevicesList(), this, this);
+        deviceAdapter = new DeviceAdapter();
         recyclerView.setAdapter(deviceAdapter);
 
-        deviceManager.connectDevices(deviceAdapter, this);
+        if (hasLocationPermission())
+            checkNetworkMonitor();
+        else
+            requestLocationPermission();
 
+    }
+
+    private void checkNetworkMonitor() {
+        if (networkMonitor == null) {
+            networkMonitor = new NetworkMonitor(this, this, this);
+            networkMonitor.start();
+        } else {
+            networkMonitor.handleNetworkState();
+        }
+    }
+
+    private void startApp() {
+        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
+        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
+        if (!appStarted) { // 1st time
+            deviceManager.initializeDevices();
+            appStarted = true;
+        } else { // when network changes occur, re-connect
+            deviceManager.disconnectDevices();
+            deviceManager.initializeDevices();
+        }
+
+        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
+        deviceManager.connectDevices(deviceAdapter, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (networkMonitor != null)
+            networkMonitor.handleNetworkState(); // re-check location and network
+        checkLocationPermission();
+    }
+
+    private void checkLocationPermission() {
+        // check if location permission is granted
+        if (hasLocationPermission()) {
+            if (!appStarted) { // start app if it hasn't started
+                checkNetworkMonitor();
+                deniedPermanentlyPermission = false;
+            }
+        } else { // permission not granted
+            if (!appStarted)
+                if (deniedPermanentlyPermission) // if user denied permanently permission to location and app hasn't started
+                    showSettingsDialog();
+        }
     }
 
     @Override
     protected void onDestroy() {
+        // dismiss any visible dialogs
+        if (settingsDialog != null && settingsDialog.isShowing())
+            settingsDialog.dismiss();
+        if (explanationDialog != null && explanationDialog.isShowing())
+            explanationDialog.dismiss();
+        // clean resources
         deviceManager.shutdownExecutors();
         deviceManager.disconnectDevices();
+        if (networkMonitor != null) {
+            networkMonitor.stop();
+            networkMonitor = null;
+        }
         super.onDestroy();
     }
+
+    private boolean hasLocationPermission() { // check if fine location permission has already been granted
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestLocationPermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                checkNetworkMonitor();
+                Log.d("LocationPermission", "Permission Granted");
+            } else {
+                // location permission denied
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    // denied permanently — guide user to settings
+                    deniedPermanentlyPermission = true;
+                    showSettingsDialog();
+                    Log.d("LocationPermission", "Permission Denied Permanently");
+                } else {
+                    // denied temporarily — explain again
+                    showExplanationDialog();
+                    Log.d("LocationPermission", "Permission Denied Temporarily");
+                }
+            }
+        }
+    }
+
+    private void showSettingsDialog() {
+        if (settingsDialog == null || !settingsDialog.isShowing())
+            settingsDialog = new MaterialAlertDialogBuilder(this)
+                    .setTitle("Permission Required")
+                    .setMessage("Precise location permission is permanently denied. Please enable it from app settings.")
+                    .setCancelable(false)
+                    .setPositiveButton("Open Settings", (dialog, which) -> { // redirect to app's info settings screen, to change permission
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Exit App", (dialog, which) -> finish())
+                    .show();
+    }
+
+    private void showExplanationDialog() {
+        if (explanationDialog == null || !explanationDialog.isShowing())
+            explanationDialog = new MaterialAlertDialogBuilder(this)
+                    .setTitle("Location Permission Needed")
+                    .setMessage("Lab Control needs location permission to detect the lab Wi-Fi network.")
+                    .setCancelable(false)
+                    .setPositiveButton("Try Again", (dialog, which) -> {
+                        requestLocationPermission();
+                    })
+                    .setNegativeButton("Exit App", (dialog, which) -> finish())
+                    .show();
+    }
+
 
     // callback for contextual action bar (multi-selection mode)
     ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
@@ -170,11 +303,25 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         blockingOverlay.setVisibility(View.GONE); // allow interactions
     }
 
-
     public void updateContextualBarTitle() {
         // add as a title of the cab the number of selected devices
         int selectedCount = deviceManager.getSelectedDevices().size();
         actionMode.setTitle(selectedCount + "");
     }
 
+    @Override
+    public void onNetworkAvailable() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
+                startApp();
+            }
+        });
+    }
+
+    @Override
+    public void onNetworkUnavailable() {
+        displayToast("Network Unavailable");
+    }
 }

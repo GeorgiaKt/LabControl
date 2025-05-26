@@ -3,6 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- to check if device is connected to the Internet -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- get WiFi information like SSID -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- required for Android 10+ along with ACCESS_WIFI_STATE -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- required for Android 12+ along with ACCESS_FINE_LOCATION -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
 
 
     <application

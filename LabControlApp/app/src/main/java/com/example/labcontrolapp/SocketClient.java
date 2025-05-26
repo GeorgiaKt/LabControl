@@ -44,7 +44,7 @@ public class SocketClient {
 
         } catch (IOException e) {
             setConnected(false);
-            Log.e("SocketClient", "Failed to connect at port: " + Constants.SERVER_PORT, e);
+            Log.e("SocketClient", "Failed to connect at port: " + Constants.SERVER_PORT);
 
             return false;
         }
@@ -64,7 +64,7 @@ public class SocketClient {
             setConnected(false);
 
         } catch (IOException e) {
-            Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + Constants.SERVER_PORT, e);
+            Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + Constants.SERVER_PORT);
         } finally {
             // removing references
             outputStream = null;
