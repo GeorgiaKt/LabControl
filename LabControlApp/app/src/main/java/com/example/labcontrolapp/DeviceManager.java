@@ -136,20 +136,23 @@ public class DeviceManager {
                     String[] parts = response.split(" - ");
                     if (parts.length == 2) {
                         dev.setName(parts[0]);
-                        dev.setOs(parts[1]);
-                        Log.d("DeviceManager ECHO", response);
+                        if (parts[1].contains("Windows")) {
+                            dev.setOs("Windows");
+                        } else
+                            dev.setOs("Linux");
+                        Log.d("DeviceManager - ECHO", response);
                     }
                 }
                 break;
             case Constants.COMMAND_RESTART:
-                Log.d("DeviceManager RESTART", response);
+                Log.d("DeviceManager - RESTART", response);
                 break;
             case Constants.COMMAND_SHUTDOWN:
                 dev.setStatus(Constants.STATUS_OFFLINE); // update status on screen
-                Log.d("DeviceManager SHUTDOWN", response);
+                Log.d("DeviceManager - SHUTDOWN", response);
                 break;
             case Constants.COMMAND_RESTORE:
-                Log.d("DeviceManager RESTORE", response);
+                Log.d("DeviceManager - RESTORE", response);
                 break;
         }
     }

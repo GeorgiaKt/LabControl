@@ -81,50 +81,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     }
 
-    private void checkNetworkMonitor() {
-        if (networkMonitor == null) {
-            networkMonitor = new NetworkMonitor(this, this, this);
-            networkMonitor.start();
-        } else {
-            networkMonitor.handleNetworkState();
-        }
-    }
-
-    private void startApp() {
-        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
-        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
-        if (!appStarted) { // 1st time
-            deviceManager.initializeDevices();
-            appStarted = true;
-        } else { // when network changes occur, re-connect
-            deviceManager.disconnectDevices();
-            deviceManager.initializeDevices();
-        }
-
-        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
-        deviceManager.connectDevices(deviceAdapter, this);
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
         if (networkMonitor != null)
             networkMonitor.handleNetworkState(); // re-check location and network
         checkLocationPermission();
-    }
-
-    private void checkLocationPermission() {
-        // check if location permission is granted
-        if (hasLocationPermission()) {
-            if (!appStarted) { // start app if it hasn't started
-                checkNetworkMonitor();
-                deniedPermanentlyPermission = false;
-            }
-        } else { // permission not granted
-            if (!appStarted)
-                if (deniedPermanentlyPermission) // if user denied permanently permission to location and app hasn't started
-                    showSettingsDialog();
-        }
     }
 
     @Override
@@ -206,6 +168,43 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                     .show();
     }
 
+    private void checkNetworkMonitor() {
+        if (networkMonitor == null) {
+            networkMonitor = new NetworkMonitor(this, this, this);
+            networkMonitor.start();
+        } else {
+            networkMonitor.handleNetworkState();
+        }
+    }
+
+    private void checkLocationPermission() {
+        // check if location permission is granted
+        if (hasLocationPermission()) {
+            if (!appStarted) { // start app if it hasn't started
+                checkNetworkMonitor();
+                deniedPermanentlyPermission = false;
+            }
+        } else { // permission not granted
+            if (!appStarted)
+                if (deniedPermanentlyPermission) // if user denied permanently permission to location and app hasn't started
+                    showSettingsDialog();
+        }
+    }
+
+    private void startApp() {
+        progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
+        blockingOverlay.setVisibility(View.VISIBLE); // block interactions
+        if (!appStarted) { // 1st time
+            deviceManager.initializeDevices();
+            appStarted = true;
+        } else { // when network changes occur, re-connect
+            deviceManager.disconnectDevices();
+            deviceManager.initializeDevices();
+        }
+
+        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
+        deviceManager.connectDevices(deviceAdapter, this);
+    }
 
     // callback for contextual action bar (multi-selection mode)
     ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
@@ -255,6 +254,11 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         }
     };
 
+    public void updateContextualBarTitle() {
+        // add as a title of the cab the number of selected devices
+        int selectedCount = deviceManager.getSelectedDevices().size();
+        actionMode.setTitle(selectedCount + "");
+    }
 
     public void displayToast(String s) {
         if (!isFinishing() && !isDestroyed()) // check if application is still running
@@ -301,12 +305,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     public void onAllDevicesConnected() { // called when all threads for device connecting finish
         progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
         blockingOverlay.setVisibility(View.GONE); // allow interactions
-    }
-
-    public void updateContextualBarTitle() {
-        // add as a title of the cab the number of selected devices
-        int selectedCount = deviceManager.getSelectedDevices().size();
-        actionMode.setTitle(selectedCount + "");
     }
 
     @Override

@@ -54,6 +54,8 @@ public class NetworkMonitor {
         if (connectivityManager == null || networkCallback != null)
             return;
 
+        Log.d("NetworkMonitor", "Network Monitor Started");
+
         networkRequest = new NetworkRequest.Builder() // type of networks want to listen to: internet capability via wifi/ethernet
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
@@ -89,6 +91,7 @@ public class NetworkMonitor {
         if (connectivityManager != null && networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
             networkCallback = null;
+            Log.d("NetworkMonitor", "Network Monitor Stopped");
         }
     }
 
@@ -104,9 +107,9 @@ public class NetworkMonitor {
             else if (labDialog != null && labDialog.isShowing())
                 labDialog.dismiss();
         }
-        if (!wasConnected && isConnected) { // if there was a connection change
+        if (!wasConnected && isConnected) { // if there was a connection change - from disconnected to connected
             if (newConnection) { // new connection
-                Log.d("NetworkMonitor", "Connected to new network");
+                Log.d("NetworkMonitor", "Connected to New Network");
                 newConnection = false;
                 listener.onNetworkAvailable();
             }
@@ -122,10 +125,12 @@ public class NetworkMonitor {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         if (locationManager != null) {
             if (!isLocationEnabled(locationManager)) { // if location is disabled
+                Log.d("NetworkMonitor", "Location Services Disabled");
                 locationEnabled = false;
                 // show alert dialog prompting user to turn on location services
                 showLocationDialog();
             } else {
+                Log.d("NetworkMonitor", "Location Services Enabled");
                 locationEnabled = true;
                 if (locationDialog != null && locationDialog.isShowing()) // if there is a visible dialog, close it
                     locationDialog.dismiss();
@@ -163,14 +168,34 @@ public class NetworkMonitor {
             if (capabilities != null &&
                     (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                             capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))) {
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                    Log.d("NetworkMonitor", "Connected via Ethernet");
                     isEthernet = true;
-                else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                    if (isConnectedToLabWiFi())
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    Log.d("NetworkMonitor", "Connected via WiFi");
+                    if (isConnectedToLabWiFi()) {
+                        Log.d("NetworkMonitor", "Connected to Lab's WiFi");
                         isWiFi = true;
+                    }
                 }
             }
         }
+    }
+
+    private boolean isConnectedToLabWiFi() {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            if (wifiInfo != null) {
+                if (locationEnabled) {
+                    String ssid = wifiInfo.getSSID();
+                    Log.d("NetworkMonitor", "SSID: " + ssid);
+                    if (ssid != null && ssid.equals(Constants.LAB_SSID))
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void showLabDialog() {
@@ -191,21 +216,5 @@ public class NetworkMonitor {
                 }
             }
         });
-    }
-
-    private boolean isConnectedToLabWiFi() {
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        if (wifiManager != null) {
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            if (wifiInfo != null) {
-                if (locationEnabled) {
-                    String ssid = wifiInfo.getSSID();
-                    Log.d("NetworkMonitor", "SSID: " + ssid);
-                    if (ssid != null && ssid.equals(Constants.LAB_SSID))
-                        return true;
-                }
-            }
-        }
-        return false;
     }
 }
