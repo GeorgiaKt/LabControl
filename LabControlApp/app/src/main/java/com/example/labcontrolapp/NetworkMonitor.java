@@ -25,7 +25,7 @@ public class NetworkMonitor {
     private NetworkRequest networkRequest;
     private ConnectivityManager.NetworkCallback networkCallback;
     private final NetworkStateListener listener;
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
     private Dialog locationDialog;
     private Dialog labDialog;
     // flags to check network and location status
@@ -66,6 +66,7 @@ public class NetworkMonitor {
             @Override
             public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
+                Log.d("NetworkMonitor", "New Network Available");
                 newConnection = true;
                 handleNetworkState();
             }
@@ -84,7 +85,6 @@ public class NetworkMonitor {
         };
 
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback);
-        handleNetworkState();
     }
 
     public void stop() {
@@ -96,11 +96,13 @@ public class NetworkMonitor {
     }
 
     public void handleNetworkState() {
+        // check location & network
         checkLocationState();
         checkNetworkState();
 
         boolean isConnected = isEthernet || isWiFi;
 
+        // (re)start app if valid
         if (locationEnabled) {
             if (!isConnected) // if not connected to lab's LAN
                 showLabDialog();
@@ -114,11 +116,7 @@ public class NetworkMonitor {
                 listener.onNetworkAvailable();
             }
         }
-//        else if (wasConnected && !isConnected) {
-//            listener.onNetworkUnavailable();
-//        }
         wasConnected = isConnected;
-
     }
 
     private void checkLocationState() {

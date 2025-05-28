@@ -44,7 +44,7 @@ public class SocketClient {
 
         } catch (IOException e) {
             setConnected(false);
-            Log.e("SocketClient", "Failed to connect at port: " + Constants.SERVER_PORT);
+            Log.e("SocketClient", "Failed to connect to /" + serverIP + ":" + Constants.SERVER_PORT);
 
             return false;
         }

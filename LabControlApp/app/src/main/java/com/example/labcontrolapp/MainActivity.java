@@ -72,21 +72,32 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
         deviceManager = new DeviceManager(this);
         deviceAdapter = new DeviceAdapter();
+        deviceManager.attachDeviceAdapter(deviceAdapter);
         recyclerView.setAdapter(deviceAdapter);
-
-        if (hasLocationPermission())
-            checkNetworkMonitor();
-        else
+        if (!hasLocationPermission())
             requestLocationPermission();
 
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        checkLocationPermission();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        if (networkMonitor != null)
-            networkMonitor.handleNetworkState(); // re-check location and network
         checkLocationPermission();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (networkMonitor != null) {
+            networkMonitor.stop();
+            networkMonitor = null;
+        }
     }
 
     @Override
@@ -99,10 +110,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         // clean resources
         deviceManager.shutdownExecutors();
         deviceManager.disconnectDevices();
-        if (networkMonitor != null) {
-            networkMonitor.stop();
-            networkMonitor = null;
-        }
         super.onDestroy();
     }
 
@@ -121,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                checkNetworkMonitor();
                 Log.d("LocationPermission", "Permission Granted");
             } else {
                 // location permission denied
@@ -172,15 +178,13 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         if (networkMonitor == null) {
             networkMonitor = new NetworkMonitor(this, this, this);
             networkMonitor.start();
-        } else {
-            networkMonitor.handleNetworkState();
         }
     }
 
     private void checkLocationPermission() {
         // check if location permission is granted
         if (hasLocationPermission()) {
-            if (!appStarted) { // start app if it hasn't started
+            if (!appStarted) { // start network monitoring if it hasn't started, then start app if connection is valid
                 checkNetworkMonitor();
                 deniedPermanentlyPermission = false;
             }
@@ -192,18 +196,27 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     private void startApp() {
+        deviceManager.initializeDevices();
+        appStarted = true;
+        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
+        deviceManager.connectDevices(this);
+    }
+
+    private void restartApp() {
+        deviceManager.disconnectDevices();
+        deviceManager.initializeDevices();
+        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
+        deviceManager.connectDevices(this);
+    }
+
+    private void startLoading() {
         progressBar.setVisibility(View.VISIBLE); // make progress bar visible before connection
         blockingOverlay.setVisibility(View.VISIBLE); // block interactions
-        if (!appStarted) { // 1st time
-            deviceManager.initializeDevices();
-            appStarted = true;
-        } else { // when network changes occur, re-connect
-            deviceManager.disconnectDevices();
-            deviceManager.initializeDevices();
-        }
+    }
 
-        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
-        deviceManager.connectDevices(deviceAdapter, this);
+    private void stopLoading() {
+        progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
+        blockingOverlay.setVisibility(View.GONE); // allow interactions
     }
 
     // callback for contextual action bar (multi-selection mode)
@@ -303,8 +316,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     @Override
     public void onAllDevicesConnected() { // called when all threads for device connecting finish
-        progressBar.setVisibility(View.GONE); // hide progress bar when all devices connect (successfully or not)
-        blockingOverlay.setVisibility(View.GONE); // allow interactions
+        stopLoading();
     }
 
     @Override
@@ -312,8 +324,13 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d("MainActivity", "Network & Location available. (Re)Starting app");
                 // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
-                startApp();
+                startLoading();
+                if (!appStarted) // 1st time
+                    startApp();
+                else // when network changes occur, re-connect
+                    restartApp();
             }
         });
     }

@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DeviceManager {
     private ArrayList<Device> devicesList = new ArrayList<>();
     private final MainActivity mainActivity;
+    private DeviceAdapter adapter;
     private final ExecutorService connectionExecutor = Executors.newFixedThreadPool(27); // use 27 threads
     private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27);
 
@@ -23,6 +24,10 @@ public class DeviceManager {
 
     public void setDevicesList(ArrayList<Device> devicesList) {
         this.devicesList = devicesList;
+    }
+
+    public void attachDeviceAdapter(DeviceAdapter adapter) {
+        this.adapter = adapter;
     }
 
     public void initializeDevices() {
@@ -46,8 +51,7 @@ public class DeviceManager {
         }
     }
 
-
-    public void connectDevices(DeviceAdapter adapter, OnDevicesCallback onFinishedCallback) {
+    public void connectDevices(OnDevicesCallback onFinishedCallback) {
         AtomicInteger completed = new AtomicInteger(0); // thread-safe counter for the number of threads that completed the connection
         int total = devicesList.size();
 
@@ -94,6 +98,14 @@ public class DeviceManager {
         return selectedDev;
     }
 
+    public ArrayList<Integer> getSelectedDevicesPositions() {
+        ArrayList<Integer> selectedDevicesPositions = new ArrayList<>();
+        for (int i = 0; i < devicesList.size(); i++)
+            if (devicesList.get(i).isSelected())
+                selectedDevicesPositions.add(i);
+        return selectedDevicesPositions;
+    }
+
     public void clearSelection() {
         for (int i = 0; i < devicesList.size(); i++) {
             devicesList.get(i).setSelected(false);
@@ -107,7 +119,10 @@ public class DeviceManager {
 
     public void handleMessageExchange(String message) { // exchange messages with selected devices
         ArrayList<Device> selectedDevices = getSelectedDevices();
-        for (Device dev : selectedDevices) {
+        ArrayList<Integer> selectedDevPositions = getSelectedDevicesPositions();
+        for (int i = 0; i < selectedDevices.size(); i++) {
+            Device dev = selectedDevices.get(i); // selected device
+            int pos = getSelectedDevicesPositions().get(i); // position of the selected device
             if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
                 messageExecutor.submit(() -> {
                     dev.getClient().sendMessage(message);
@@ -122,6 +137,14 @@ public class DeviceManager {
                             dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
                         }
                     }
+
+                    // update ui of the selected device
+                    mainActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyItemChanged(pos);
+                        }
+                    });
                 });
             }
         }
