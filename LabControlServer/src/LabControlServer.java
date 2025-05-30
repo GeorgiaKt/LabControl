@@ -55,12 +55,12 @@ public class LabControlServer {
                             break;
                         case "restart":
                             System.out.println("Restart from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
-                            labControlServer.sendMessage(labControlServer.getSystemName() + " Rebooting...");
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - Rebooting...");
                             System.out.println("Sent restart");
                             break;
                         case "shutdown":
                             System.out.println("Shut down from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
-                            labControlServer.sendMessage(labControlServer.getSystemName() + " Shutting down...");
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - Shutting down...");
                             System.out.println("Sent shutdown");
                             break;
                         case "restore":

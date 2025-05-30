@@ -51,6 +51,7 @@ public class NetworkMonitor {
     }
 
     public void start() {
+        // don't start if connectivity manager hasn't been initialized or monitoring has already started
         if (connectivityManager == null || networkCallback != null)
             return;
 
@@ -85,6 +86,7 @@ public class NetworkMonitor {
         };
 
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback);
+        handleNetworkState();
     }
 
     public void stop() {
@@ -102,13 +104,18 @@ public class NetworkMonitor {
 
         boolean isConnected = isEthernet || isWiFi;
 
-        // (re)start app if valid
-        if (locationEnabled) {
+        // show dialog based on location and network status
+        if (!locationEnabled) {
+            dismissDialog(labDialog); // close lab dialog if shown
+            showLocationDialog(); // show alert dialog prompting user to turn on location services
+        } else {
+            dismissDialog(locationDialog); // close location dialog if shown
             if (!isConnected) // if not connected to lab's LAN
-                showLabDialog();
-            else if (labDialog != null && labDialog.isShowing())
-                labDialog.dismiss();
+                showLabDialog(); // show alert dialog prompting user to check wifi network
+            else
+                dismissDialog(labDialog);
         }
+
         if (!wasConnected && isConnected) { // if there was a connection change - from disconnected to connected
             if (newConnection) { // new connection
                 Log.d("NetworkMonitor", "Connected to New Network");
@@ -119,19 +126,20 @@ public class NetworkMonitor {
         wasConnected = isConnected;
     }
 
+    private void dismissDialog(Dialog dialog) {
+        if (dialog != null && dialog.isShowing())
+            dialog.dismiss();
+    }
+
     private void checkLocationState() {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         if (locationManager != null) {
             if (!isLocationEnabled(locationManager)) { // if location is disabled
                 Log.d("NetworkMonitor", "Location Services Disabled");
                 locationEnabled = false;
-                // show alert dialog prompting user to turn on location services
-                showLocationDialog();
             } else {
                 Log.d("NetworkMonitor", "Location Services Enabled");
                 locationEnabled = true;
-                if (locationDialog != null && locationDialog.isShowing()) // if there is a visible dialog, close it
-                    locationDialog.dismiss();
             }
         }
     }

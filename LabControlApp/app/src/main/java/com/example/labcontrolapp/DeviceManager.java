@@ -5,14 +5,12 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DeviceManager {
     private ArrayList<Device> devicesList = new ArrayList<>();
     private final MainActivity mainActivity;
     private DeviceAdapter adapter;
-    private final ExecutorService connectionExecutor = Executors.newFixedThreadPool(27); // use 27 threads
-    private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27);
+    private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27); // use 27 threads
 
     public DeviceManager(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -51,45 +49,6 @@ public class DeviceManager {
         }
     }
 
-    public void connectDevices(OnDevicesCallback onFinishedCallback) {
-        AtomicInteger completed = new AtomicInteger(0); // thread-safe counter for the number of threads that completed the connection
-        int total = devicesList.size();
-
-        for (int i = 0; i < devicesList.size(); i++) {
-            final int index = i;
-            Device dev = devicesList.get(i);
-
-            connectionExecutor.submit(() -> {
-                boolean connectionResult = dev.getClient().connect(Constants.DEFAULT_SERVER_IP); // connect( dev.getIpAddress() )
-                if (connectionResult)
-                    dev.setStatus(Constants.STATUS_ONLINE);
-                else
-                    dev.setStatus(Constants.STATUS_OFFLINE);
-
-                mainActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyItemChanged(index); // update ui
-                        if (completed.incrementAndGet() == total) {
-                            onFinishedCallback.onAllDevicesConnected(); // inform when all finish
-                        }
-                    }
-                });
-            });
-        }
-
-    }
-
-    public void disconnectDevices() {
-        // close socket connection if still connected
-        for (Device dev : devicesList) {
-            if (dev.getClient() != null) {
-                dev.getClient().disconnect();
-                dev.setClient(null);
-            }
-        }
-    }
-
     public ArrayList<Device> getSelectedDevices() {
         ArrayList<Device> selectedDev = new ArrayList<>();
         for (Device dev : devicesList)
@@ -123,8 +82,12 @@ public class DeviceManager {
         for (int i = 0; i < selectedDevices.size(); i++) {
             Device dev = selectedDevices.get(i); // selected device
             int pos = getSelectedDevicesPositions().get(i); // position of the selected device
-            if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
-                messageExecutor.submit(() -> {
+
+            messageExecutor.submit(() -> {
+                // connect to device
+                connectDevice(dev);
+                // send message if online
+                if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
                     dev.getClient().sendMessage(message);
                     String response = dev.getClient().receiveMessage();
                     handleResponse(dev, message, response);
@@ -137,63 +100,71 @@ public class DeviceManager {
                             dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
                         }
                     }
+                }
+                // disconnect from device
+                disconnectDevice(dev);
 
-                    // update ui of the selected device
-                    mainActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyItemChanged(pos);
-                        }
-                    });
+                // update ui of the selected device
+                mainActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyItemChanged(pos);
+                    }
                 });
-            }
+            });
         }
+    }
 
+    private static void connectDevice(Device dev) {
+        boolean connectionResult = dev.getClient().connect(Constants.DEFAULT_SERVER_IP); // connect( dev.getIpAddress() )
+        if (connectionResult)
+            dev.setStatus(Constants.STATUS_ONLINE);
+        else
+            dev.setStatus(Constants.STATUS_OFFLINE);
+    }
+
+    private static void disconnectDevice(Device dev) {
+        if (dev.getClient() != null)
+            dev.getClient().disconnect();
     }
 
     public void handleResponse(Device dev, String message, String response) {
         // based on the command executed do the corresponding actions in app
-        switch (message) {
-            case Constants.COMMAND_ECHO:
-                if (response.contains(" - ")) {
-                    String[] parts = response.split(" - ");
-                    if (parts.length == 2) {
-                        dev.setName(parts[0]);
-                        if (parts[1].contains("Windows")) {
-                            dev.setOs("Windows");
-                        } else
-                            dev.setOs("Linux");
-                        Log.d("DeviceManager - ECHO", response);
-                    }
-                }
-                break;
-            case Constants.COMMAND_RESTART:
-                Log.d("DeviceManager - RESTART", response);
-                break;
-            case Constants.COMMAND_SHUTDOWN:
-                dev.setStatus(Constants.STATUS_OFFLINE); // update status on screen
-                Log.d("DeviceManager - SHUTDOWN", response);
-                break;
-            case Constants.COMMAND_RESTORE:
-                Log.d("DeviceManager - RESTORE", response);
-                break;
+        if (response.contains(" - ")) {
+            String[] parts = response.split(" - ");
+            dev.setName(parts[0]); // update pc name
+            switch (message) {
+                case Constants.COMMAND_ECHO:
+                    // update os
+                    if (parts[1].contains("Windows")) {
+                        dev.setOs("Windows");
+                    } else
+                        dev.setOs("Linux");
+                    Log.d("DeviceManager - ECHO", response);
+                    break;
+                case Constants.COMMAND_RESTART:
+                    Log.d("DeviceManager - RESTART", response);
+                    break;
+                case Constants.COMMAND_SHUTDOWN:
+                    dev.setStatus(Constants.STATUS_OFFLINE); // update status on screen
+                    Log.d("DeviceManager - SHUTDOWN", response);
+                    break;
+                case Constants.COMMAND_RESTORE:
+                    Log.d("DeviceManager - RESTORE", response);
+                    break;
+            }
         }
     }
 
-    public void shutdownExecutors() {
-        shutdownExecutor(connectionExecutor);
-        shutdownExecutor(messageExecutor);
-    }
-
-    private void shutdownExecutor(ExecutorService executor) {
-        executor.shutdown(); // stop the executor from accepting new tasks
+    public void shutdownExecutor() {
+        messageExecutor.shutdown(); // stop the executor from accepting new tasks
         try {
-            // wait up to 3 seconds for existing tasks to finish
-            if (!executor.awaitTermination(3, java.util.concurrent.TimeUnit.SECONDS)) {
-                executor.shutdownNow(); // if they didn't finish within the timeout, shut down executor by interrupting them
+            // wait up to 6 seconds for existing tasks to finish
+            if (!messageExecutor.awaitTermination(6, java.util.concurrent.TimeUnit.SECONDS)) {
+                messageExecutor.shutdownNow(); // if they didn't finish within the timeout, shut down executor by interrupting them
             }
         } catch (InterruptedException e) {
-            executor.shutdownNow();
+            messageExecutor.shutdownNow();
             Thread.currentThread().interrupt(); // restore interrupted status
         }
     }

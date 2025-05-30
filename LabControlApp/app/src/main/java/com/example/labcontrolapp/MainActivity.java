@@ -30,7 +30,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 
-public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, OnDevicesCallback, NetworkMonitor.NetworkStateListener {
+public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, NetworkMonitor.NetworkStateListener {
     // ui components
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
@@ -80,12 +80,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        checkLocationPermission();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         checkLocationPermission();
@@ -108,8 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         if (explanationDialog != null && explanationDialog.isShowing())
             explanationDialog.dismiss();
         // clean resources
-        deviceManager.shutdownExecutors();
-        deviceManager.disconnectDevices();
+        deviceManager.shutdownExecutor();
         super.onDestroy();
     }
 
@@ -178,6 +171,8 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         if (networkMonitor == null) {
             networkMonitor = new NetworkMonitor(this, this, this);
             networkMonitor.start();
+        } else {
+            networkMonitor.handleNetworkState();
         }
     }
 
@@ -185,9 +180,10 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         // check if location permission is granted
         if (hasLocationPermission()) {
             if (!appStarted) { // start network monitoring if it hasn't started, then start app if connection is valid
-                checkNetworkMonitor();
+                startLoading();
                 deniedPermanentlyPermission = false;
             }
+            checkNetworkMonitor();
         } else { // permission not granted
             if (!appStarted)
                 if (deniedPermanentlyPermission) // if user denied permanently permission to location and app hasn't started
@@ -196,17 +192,11 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     private void startApp() {
+        Log.d("MainActivity", "Starting app...");
         deviceManager.initializeDevices();
         appStarted = true;
         deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
-        deviceManager.connectDevices(this);
-    }
-
-    private void restartApp() {
-        deviceManager.disconnectDevices();
-        deviceManager.initializeDevices();
-        deviceAdapter.attachToAdapter(deviceManager.getDevicesList(), this, this);
-        deviceManager.connectDevices(this);
+        stopLoading();
     }
 
     private void startLoading() {
@@ -315,22 +305,14 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     }
 
     @Override
-    public void onAllDevicesConnected() { // called when all threads for device connecting finish
-        stopLoading();
-    }
-
-    @Override
     public void onNetworkAvailable() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d("MainActivity", "Network & Location available. (Re)Starting app");
+                Log.d("MainActivity", "Network & Location available");
                 // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
-                startLoading();
                 if (!appStarted) // 1st time
                     startApp();
-                else // when network changes occur, re-connect
-                    restartApp();
             }
         });
     }
