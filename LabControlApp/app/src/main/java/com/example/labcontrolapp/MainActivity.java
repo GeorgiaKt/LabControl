@@ -1,10 +1,14 @@
 package com.example.labcontrolapp;
 
 import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
@@ -41,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     ActionMode actionMode; // for multiple item selection
     View blockingOverlay; // overlay for blocking interactions while loading
     NetworkMonitor networkMonitor;
+    EchoService echoService;
+    boolean isBound = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private Dialog settingsDialog, explanationDialog;
     // booleans needed for managing location permission dialogs
@@ -87,11 +93,15 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
     @Override
     protected void onStop() {
-        super.onStop();
+        if (isBound) {
+            unbindService(serviceConnection);
+            isBound = false;
+        }
         if (networkMonitor != null) {
             networkMonitor.stop();
             networkMonitor = null;
         }
+        super.onStop();
     }
 
     @Override
@@ -102,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         if (explanationDialog != null && explanationDialog.isShowing())
             explanationDialog.dismiss();
         // clean resources
-        deviceManager.shutdownExecutor();
+        deviceManager.shutdownExecutors();
         super.onDestroy();
     }
 
@@ -313,6 +323,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                 // start app after ensuring location permission is granted, location services are enabled and device is connected to lab's LAN
                 if (!appStarted) // 1st time
                     startApp();
+
+                // start echo service after app and network monitor have started
+                if (!isBound) {
+                    Intent intent = new Intent(MainActivity.this, EchoService.class);
+                    bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+                }
             }
         });
     }
@@ -321,4 +337,21 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     public void onNetworkUnavailable() {
         displayToast("Network Unavailable");
     }
+
+
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d("MainActivityEchoService", "Connected to Echo Service");
+            EchoService.LocalBinder binder = (EchoService.LocalBinder) iBinder;
+            echoService = binder.getService();
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            isBound = false;
+        }
+    };
+
 }
