@@ -11,7 +11,7 @@ public class DeviceManager {
     private final MainActivity mainActivity;
     private DeviceAdapter adapter;
     private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27); // use 27 threads
-    private final ExecutorService echoExecutor = Executors.newFixedThreadPool(10);
+    private final ExecutorService echoExecutor = Executors.newFixedThreadPool(27);
 
     public DeviceManager(MainActivity mainActivity) {
         this.mainActivity = mainActivity;

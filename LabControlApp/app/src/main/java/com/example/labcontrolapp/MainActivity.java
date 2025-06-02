@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     @Override
     protected void onStop() {
         if (isBound) {
+            echoService.stopEchoing();
             unbindService(serviceConnection);
             isBound = false;
         }
@@ -325,12 +326,16 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                     startApp();
 
                 // start echo service after app and network monitor have started
-                if (!isBound) {
-                    Intent intent = new Intent(MainActivity.this, EchoService.class);
-                    bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-                }
+                bindEchoService();
             }
         });
+    }
+
+    private void bindEchoService() {
+        if (!isBound) {
+            Intent intent = new Intent(MainActivity.this, EchoService.class);
+            bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -345,7 +350,9 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             Log.d("MainActivityEchoService", "Connected to Echo Service");
             EchoService.LocalBinder binder = (EchoService.LocalBinder) iBinder;
             echoService = binder.getService();
+            echoService.setDeviceManager(deviceManager);
             isBound = true;
+            echoService.startEchoing();
         }
 
         @Override
