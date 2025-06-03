@@ -82,18 +82,20 @@ public class DeviceManager {
         ArrayList<Integer> selectedDevPositions = getSelectedDevicesPositions();
         for (int i = 0; i < selectedDevices.size(); i++) {
             Device dev = selectedDevices.get(i); // selected device
-            int pos = getSelectedDevicesPositions().get(i); // position of the selected device
+            int pos = selectedDevPositions.get(i); // position of the selected device
 
             messageExecutor.submit(() -> {
-                // connect to device
-                connectDevice(dev);
-                // send message if online
-                if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
-                    communicateWithDevice(message, dev);
+                synchronized (dev.getClient()) { // synchronize per device's socket, one thread at a time can access the device's socket
+                    // connect to device
+                    connectDevice(dev);
+                    // send message if online
+                    if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
+                        communicateWithDevice(message, dev);
+                    }
+                    // disconnect from device
+                    disconnectDevice(dev);
+                    updateDeviceUI(pos);
                 }
-                // disconnect from device
-                disconnectDevice(dev);
-                updateDeviceUI(pos);
             });
         }
     }
@@ -108,36 +110,37 @@ public class DeviceManager {
         });
     }
 
-    public void echoAllDevices(){
+    public void echoAllDevices() {
         for (int i = 0; i < devicesList.size(); i++) {
             Device dev = devicesList.get(i);
             int pos = i;
 
             echoExecutor.submit(() -> {
-                connectDevice(dev);
-                if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
-                    communicateWithDevice(Constants.COMMAND_ECHO, dev);
+                synchronized (dev.getClient()) {
+                    connectDevice(dev);
+                    if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
+                        communicateWithDevice(Constants.COMMAND_ECHO, dev);
+                    }
+                    disconnectDevice(dev);
+                    updateDeviceUI(pos);
                 }
-                disconnectDevice(dev);
-                updateDeviceUI(pos);
             });
-
         }
     }
 
     private void communicateWithDevice(String message, Device dev) {
-        synchronized (dev) { // synchronize per device to avoid conflicts when changing socket timeout
-            dev.getClient().sendMessage(message);
-            String response = dev.getClient().receiveMessage();
-            handleResponse(dev, message, response);
-            if (message.equals(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
-                try { // in case failure occurs, reset timeout
-                    dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
-                    response = dev.getClient().receiveMessage();
-                    handleResponse(dev, message, response);
-                } finally {
-                    dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
-                }
+        dev.getClient().sendMessage(message);
+        String response = dev.getClient().receiveMessage();
+        handleResponse(dev, message, response);
+        if (message.equals(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
+            try { // in case failure occurs, reset timeout
+                dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
+                response = dev.getClient().receiveMessage();
+                handleResponse(dev, message, response);
+            } catch (Exception e) {
+                Log.e("DeviceManager - RESTORE ERROR", "Failed to receive \"Restored\".");
+            } finally {
+                dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
             }
         }
     }

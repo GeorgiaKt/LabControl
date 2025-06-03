@@ -73,7 +73,7 @@ public class SocketClient {
         }
     }
 
-    public synchronized void sendMessage(String message) { // synchronized since being accessed via multiple threads (allow only one thread at a time)
+    public void sendMessage(String message) { // synchronized since being accessed via multiple threads (allow only one thread at a time)
         try {
             outputStream.writeObject(message);
             outputStream.flush();
@@ -82,7 +82,7 @@ public class SocketClient {
         }
     }
 
-    public synchronized String receiveMessage() {
+    public String receiveMessage() {
         String response;
         try {
             response = (String) inputStream.readObject();
