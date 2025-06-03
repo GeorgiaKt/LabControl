@@ -12,4 +12,5 @@
     <string name="wakeMenuItemText">Wake on LAN</string>
     <string name="optionsMenuItem">Options</string>
     <string name="optionsMenuItemText">Options\n</string>
+    <string name="selectAllMenuItemText">Select All</string>
 </resources>

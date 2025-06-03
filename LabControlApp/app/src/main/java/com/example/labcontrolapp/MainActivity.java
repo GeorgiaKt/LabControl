@@ -255,6 +255,15 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
 
                 actionMode.finish();
                 return true;
+            } else if (menuItem.getItemId() == R.id.selectAllMenuItem) {
+                // select/deselect all devices
+                if (deviceManager.areAllSelected())
+                    deviceManager.clearSelection();
+                else
+                    deviceManager.selectAll();
+                updateContextualBarTitle();
+                deviceAdapter.notifyDataSetChanged();
+                return true;
             }
 
             return false;
@@ -292,11 +301,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             deviceManager.toggleSelection(position);
             deviceAdapter.notifyItemChanged(position);
             updateContextualBarTitle();
-
-            // end action mode if no items are selected
-            if (deviceManager.getSelectedDevices().isEmpty()) {
-                actionMode.finish();
-            }
         }
     }
 
@@ -308,11 +312,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         deviceManager.toggleSelection(position);
         deviceAdapter.notifyItemChanged(position);
         updateContextualBarTitle();
-
-        // end action mode if no items are selected
-        if (deviceManager.getSelectedDevices().isEmpty()) {
-            actionMode.finish();
-        }
     }
 
     @Override

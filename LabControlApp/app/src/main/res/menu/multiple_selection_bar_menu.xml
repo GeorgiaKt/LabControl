@@ -3,6 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- icons at 31 dp -->
     <item
+        android:id="@+id/selectAllMenuItem"
+        android:icon="@drawable/check_all"
+        android:title="@string/selectAllMenuItemText"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/optionsMenuItem"
         android:icon="@drawable/dots_vertical"
         android:title="@string/optionsMenuItemText"

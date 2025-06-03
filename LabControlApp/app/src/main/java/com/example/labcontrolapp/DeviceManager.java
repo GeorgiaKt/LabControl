@@ -77,6 +77,21 @@ public class DeviceManager {
         devicesList.get(position).setSelected(!sel); // toggle selection of the device
     }
 
+    public void selectAll() {
+        for (int i = 0; i < devicesList.size(); i++) {
+            devicesList.get(i).setSelected(true);
+        }
+    }
+
+    public boolean areAllSelected() {
+        for (Device device : devicesList) {
+            if (!device.isSelected()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void handleMessageExchange(String message) { // exchange messages with selected devices
         ArrayList<Device> selectedDevices = getSelectedDevices();
         ArrayList<Integer> selectedDevPositions = getSelectedDevicesPositions();
