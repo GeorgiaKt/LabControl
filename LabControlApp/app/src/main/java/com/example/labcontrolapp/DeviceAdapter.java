@@ -2,6 +2,7 @@ package com.example.labcontrolapp;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,6 +80,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             public boolean onLongClick(View view) {
                 int currentPosition = holder.getAdapterPosition();
                 if (currentPosition != RecyclerView.NO_POSITION) { // proceed only if View Holder's position is still valid
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                     listener.onDeviceLongClickListener(currentPosition);
                 }
                 return false;
