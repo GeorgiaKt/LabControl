@@ -16,6 +16,7 @@ import android.Manifest;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -39,11 +40,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     MaterialToolbar toolbar;
     RecyclerView recyclerView;
     ProgressBar progressBar;
+    View blockingOverlay; // overlay for blocking interactions while loading
+    ImageButton responsesButton;
     // core components
     DeviceManager deviceManager;
     DeviceAdapter deviceAdapter;
     ActionMode actionMode; // for multiple item selection
-    View blockingOverlay; // overlay for blocking interactions while loading
     NetworkMonitor networkMonitor;
     EchoService echoService;
     boolean isBound = false;
@@ -71,6 +73,14 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         blockingOverlay = findViewById(R.id.blockingOverlay);
+        responsesButton = findViewById(R.id.responsesButton);
+
+        responsesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                displayToast("Responses Clicked");
+            }
+        });
 
         setSupportActionBar(toolbar);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
