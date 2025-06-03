@@ -68,7 +68,7 @@ public class LabControlServer {
                             labControlServer.sendMessage(labControlServer.getSystemName() + " - Restoring...");
                             System.out.println("Sent restoring");
                             try {
-                                Thread.sleep(90000); // sleep for 90 seconds
+                                Thread.sleep(120000); // sleep for 120 seconds
                                 labControlServer.sendMessage(labControlServer.getSystemName() + " - Restored");
                                 System.out.println("Sent restored");
                             } catch (InterruptedException e) {

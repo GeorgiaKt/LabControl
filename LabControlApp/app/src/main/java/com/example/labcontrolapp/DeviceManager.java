@@ -11,6 +11,7 @@ public class DeviceManager {
     private final MainActivity mainActivity;
     private DeviceAdapter adapter;
     private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27); // use 27 threads
+    private final ExecutorService echoExecutor = Executors.newFixedThreadPool(27);
 
     public DeviceManager(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -81,37 +82,66 @@ public class DeviceManager {
         ArrayList<Integer> selectedDevPositions = getSelectedDevicesPositions();
         for (int i = 0; i < selectedDevices.size(); i++) {
             Device dev = selectedDevices.get(i); // selected device
-            int pos = getSelectedDevicesPositions().get(i); // position of the selected device
+            int pos = selectedDevPositions.get(i); // position of the selected device
 
             messageExecutor.submit(() -> {
-                // connect to device
-                connectDevice(dev);
-                // send message if online
-                if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
-                    dev.getClient().sendMessage(message);
-                    String response = dev.getClient().receiveMessage();
-                    handleResponse(dev, message, response);
-                    if (message.equals(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
-                        try { // in case failure occurs, reset timeout
-                            dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
-                            response = dev.getClient().receiveMessage();
-                            handleResponse(dev, message, response);
-                        } finally {
-                            dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
-                        }
+                synchronized (dev.getClient()) { // synchronize per device's socket, one thread at a time can access the device's socket
+                    // connect to device
+                    connectDevice(dev);
+                    // send message if online
+                    if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
+                        communicateWithDevice(message, dev);
                     }
+                    // disconnect from device
+                    disconnectDevice(dev);
+                    updateDeviceUI(pos);
                 }
-                // disconnect from device
-                disconnectDevice(dev);
-
-                // update ui of the selected device
-                mainActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyItemChanged(pos);
-                    }
-                });
             });
+        }
+    }
+
+    private void updateDeviceUI(int pos) {
+        // update ui of the selected device
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyItemChanged(pos);
+            }
+        });
+    }
+
+    public void echoAllDevices() {
+        for (int i = 0; i < devicesList.size(); i++) {
+            Device dev = devicesList.get(i);
+            int pos = i;
+
+            echoExecutor.submit(() -> {
+                synchronized (dev.getClient()) {
+                    connectDevice(dev);
+                    if (dev.getStatus().equals(Constants.STATUS_ONLINE)) { // send the command only if the selected device is online
+                        communicateWithDevice(Constants.COMMAND_ECHO, dev);
+                    }
+                    disconnectDevice(dev);
+                    updateDeviceUI(pos);
+                }
+            });
+        }
+    }
+
+    private void communicateWithDevice(String message, Device dev) {
+        dev.getClient().sendMessage(message);
+        String response = dev.getClient().receiveMessage();
+        handleResponse(dev, message, response);
+        if (message.equals(Constants.COMMAND_RESTORE)) { // when restore command is sent, app receives 2 responses
+            try { // in case failure occurs, reset timeout
+                dev.getClient().setReadTimeout(Constants.READ_TIMEOUT); // increase to read timeout in order to receive 2nd response for restore
+                response = dev.getClient().receiveMessage();
+                handleResponse(dev, message, response);
+            } catch (Exception e) {
+                Log.e("DeviceManager - RESTORE ERROR", "Failed to receive \"Restored\".");
+            } finally {
+                dev.getClient().setReadTimeout(Constants.CONNECT_TIMEOUT); // reset timeout after receiving 2nd response
+            }
         }
     }
 
@@ -156,15 +186,20 @@ public class DeviceManager {
         }
     }
 
-    public void shutdownExecutor() {
-        messageExecutor.shutdown(); // stop the executor from accepting new tasks
+    public void shutdownExecutors() {
+        shutdownExecutor(messageExecutor);
+        shutdownExecutor(echoExecutor);
+    }
+
+    private void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown(); // stop the executor from accepting new tasks
         try {
             // wait up to 6 seconds for existing tasks to finish
-            if (!messageExecutor.awaitTermination(6, java.util.concurrent.TimeUnit.SECONDS)) {
-                messageExecutor.shutdownNow(); // if they didn't finish within the timeout, shut down executor by interrupting them
+            if (!executor.awaitTermination(6, java.util.concurrent.TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // if they didn't finish within the timeout, shut down executor by interrupting them
             }
         } catch (InterruptedException e) {
-            messageExecutor.shutdownNow();
+            executor.shutdownNow();
             Thread.currentThread().interrupt(); // restore interrupted status
         }
     }
