@@ -18,6 +18,10 @@ public class DeviceManager {
         this.mainActivity = mainActivity;
     }
 
+    public ArrayList<String> getResponsesList() {
+        return responsesList;
+    }
+
     public ArrayList<Device> getDevicesList() {
         return devicesList;
     }

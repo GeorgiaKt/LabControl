@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             @Override
             public void onClick(View view) {
                 ResponsesBottomSheet responseBottomSheet = new ResponsesBottomSheet();
+                responseBottomSheet.setResponsesList(deviceManager.getResponsesList()); // store responses
                 responseBottomSheet.show(getSupportFragmentManager(), "ModalBottomSheet");
                 displayToast("Responses Clicked");
             }
