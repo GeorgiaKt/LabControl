@@ -6,7 +6,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="16dp"
@@ -16,14 +16,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <View
+            android:id="@+id/dragHandleView"
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/drag_handle" />
+
         <TextView
-            android:id="@+id/resposnesTitleTextView"
+            android:id="@+id/responsesTitleTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/responsesText"
-            android:textSize="20sp"/>
+            android:textSize="20sp" />
 
-        <ScrollView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true">
@@ -32,8 +40,9 @@
                 android:id="@+id/responsesTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAlignment="center" />
-        </ScrollView>
+                android:textAlignment="center"
+                android:textSize="16sp" />
+        </androidx.core.widget.NestedScrollView>
 
     </LinearLayout>
 

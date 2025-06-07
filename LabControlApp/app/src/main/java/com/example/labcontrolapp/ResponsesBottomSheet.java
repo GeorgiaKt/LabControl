@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.ArrayList;
@@ -42,11 +43,30 @@ public class ResponsesBottomSheet extends BottomSheetDialogFragment {
         displayResponses();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        View view = getView();
+        if (view != null) {
+            View parent = (View) view.getParent();
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(parent);
+
+            parent.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+            parent.setLayoutParams(parent.getLayoutParams());
+
+            behavior.setHideable(true);
+            behavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            behavior.setFitToContents(true);
+        }
+    }
+
+
     public void displayResponses() {
         if (!responsesList.isEmpty()) {
             String tmpText = "";
             for (String response : responsesList) {
-                tmpText = "> " + response + "\n";
+                tmpText = tmpText + "\n" + "> " + response;
             }
             responeseTextView.setText(tmpText);
         }
