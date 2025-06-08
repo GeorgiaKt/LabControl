@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                 ResponsesBottomSheet responseBottomSheet = new ResponsesBottomSheet();
                 responseBottomSheet.setResponsesList(deviceManager.getResponsesList()); // store responses
                 responseBottomSheet.show(getSupportFragmentManager(), "ModalBottomSheet");
-                displayToast("Responses Clicked");
             }
         });
 
