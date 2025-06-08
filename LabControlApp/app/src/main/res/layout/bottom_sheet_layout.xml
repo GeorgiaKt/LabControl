@@ -37,7 +37,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@string/nestedScrollViewContDescr"
-            android:fillViewport="true">
+            android:fillViewport="true"
+            android:scrollbars="vertical">
 
             <LinearLayout
                 android:id="@+id/responsesContainer"
