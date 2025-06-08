@@ -34,6 +34,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, NetworkMonitor.NetworkStateListener {
     // ui components
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
     ActionMode actionMode; // for multiple item selection
     NetworkMonitor networkMonitor;
     EchoService echoService;
+    ResponsesBottomSheet responseBottomSheet;
     boolean isBound = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private Dialog settingsDialog, explanationDialog;
@@ -75,23 +78,24 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         blockingOverlay = findViewById(R.id.blockingOverlay);
         responsesButton = findViewById(R.id.responsesButton);
 
-        responsesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ResponsesBottomSheet responseBottomSheet = new ResponsesBottomSheet();
-                responseBottomSheet.setResponsesList(deviceManager.getResponsesList()); // store responses
-                responseBottomSheet.show(getSupportFragmentManager(), "ModalBottomSheet");
-            }
-        });
-
         setSupportActionBar(toolbar);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 columns
         recyclerView.setHasFixedSize(true); // recycler view stays the same size
+
+        responseBottomSheet = new ResponsesBottomSheet();
 
         deviceManager = new DeviceManager(this);
         deviceAdapter = new DeviceAdapter();
         deviceManager.attachDeviceAdapter(deviceAdapter);
         recyclerView.setAdapter(deviceAdapter);
+
+        responsesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                responseBottomSheet.show(getSupportFragmentManager(), "ModalBottomSheet");
+            }
+        });
+
         if (!hasLocationPermission())
             requestLocationPermission();
 
@@ -293,6 +297,12 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
         // add as a title of the cab the number of selected devices
         int selectedCount = deviceManager.getSelectedDevices().size();
         actionMode.setTitle(selectedCount + "");
+    }
+
+    public void appendResponseToBottomSheet(String newResponses) { // update the responses list in the bottom sheet dynamically
+        if (responseBottomSheet != null) {
+            responseBottomSheet.appendResponse(newResponses);
+        }
     }
 
     public void displayToast(String s) {

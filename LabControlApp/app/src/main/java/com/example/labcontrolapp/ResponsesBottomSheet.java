@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -18,16 +19,10 @@ import java.util.ArrayList;
 
 public class ResponsesBottomSheet extends BottomSheetDialogFragment {
     LinearLayout responsesContainer;
+    NestedScrollView nestedScrollView;
     ArrayList<String> responsesList = new ArrayList<>();
+    private int screenWidth;
 
-
-    public ArrayList<String> getResponsesList() {
-        return responsesList;
-    }
-
-    public void setResponsesList(ArrayList<String> responsesList) {
-        this.responsesList = responsesList;
-    }
 
     @Nullable
     @Override
@@ -35,13 +30,16 @@ public class ResponsesBottomSheet extends BottomSheetDialogFragment {
         // inflate the bottom sheet layout
         View view = inflater.inflate(R.layout.bottom_sheet_layout, container, false);
         responsesContainer = view.findViewById(R.id.responsesContainer);
+        nestedScrollView = view.findViewById(R.id.nestedScrollView);
+        screenWidth = getResources().getDisplayMetrics().widthPixels;
+
         return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) { // called after onCreatView
         super.onViewCreated(view, savedInstanceState);
-        displayResponses(); // update responses on bottom sheet
+        updateResponses(); // update responses on bottom sheet
     }
 
     @Override
@@ -66,24 +64,31 @@ public class ResponsesBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    public boolean isBottomSheetVisible() {
+        return isAdded() && isVisible();
+    }
 
-    public void displayResponses() {
+    public void appendResponse(String response) {
+        boolean wasEmpty = responsesList.isEmpty();
+        responsesList.add(response);
+        if (isBottomSheetVisible() && responsesContainer != null) {
+            if (wasEmpty) // if list was empty remove all visible responses - in order to remove the no responses available message
+                responsesContainer.removeAllViews();
+            int leftPadding = (int) (0.12 * screenWidth);
+            addSingleResponseView("‣ " + response, leftPadding, false); // add response on ui
+            nestedScrollView.post(() -> nestedScrollView.fullScroll(View.FOCUS_DOWN)); // scroll to bottom
+        }
+    }
+
+    private void updateResponses() { // display the whole responses list
         // set left padding of the text based on the screen size
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
         // change left padding based on response list state (if its empty or not)
 
         if (responsesContainer == null) return;
 
         if (responsesList.isEmpty()) { // when no responses, show corresponding text
             int leftPadding = (int) (0.2 * screenWidth); // 20% of screen width
-
-            TextView responseTextView = new TextView(getContext());
-            responseTextView.setText("No responses from devices !");
-            responseTextView.setTextSize(16);
-            responseTextView.setPadding(leftPadding, 15, 0, 8);
-            responseTextView.setTypeface(null, Typeface.ITALIC);
-
-            responsesContainer.addView(responseTextView);
+            addSingleResponseView("No responses from devices !", leftPadding, true);
             return;
         }
 
@@ -93,12 +98,18 @@ public class ResponsesBottomSheet extends BottomSheetDialogFragment {
         int leftPadding = (int) (0.12 * screenWidth); // 12% of screen width
 
         for (String response : responsesList) { // for each response, create a text view
-            TextView responseTextView = new TextView(getContext());
-            responseTextView.setText("‣ " + response);
-            responseTextView.setTextSize(16);
-            responseTextView.setPadding(leftPadding, 8, 0, 8);
-
-            responsesContainer.addView(responseTextView);
+            addSingleResponseView("‣ " + response, leftPadding, false);
         }
+    }
+
+    private void addSingleResponseView(String response, int leftPadding, boolean isEmpty) {
+        TextView responseTextView = new TextView(getContext());
+        responseTextView.setText(response);
+        responseTextView.setTextSize(16);
+        responseTextView.setPadding(leftPadding, 8, 0, 8);
+        if (isEmpty)
+            responseTextView.setTypeface(null, Typeface.ITALIC);
+
+        responsesContainer.addView(responseTextView);
     }
 }

@@ -204,6 +204,14 @@ public class DeviceManager {
                     break;
             }
             responsesList.add(response);
+
+            // append response to bottom sheet
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mainActivity.appendResponseToBottomSheet(response);
+                }
+            });
         }
     }
 
