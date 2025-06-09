@@ -12,9 +12,14 @@ public class DeviceManager {
     private DeviceAdapter adapter;
     private final ExecutorService messageExecutor = Executors.newFixedThreadPool(27); // use 27 threads
     private final ExecutorService echoExecutor = Executors.newFixedThreadPool(27);
+    private final ArrayList<String> responsesList = new ArrayList<>();
 
     public DeviceManager(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
+    }
+
+    public ArrayList<String> getResponsesList() {
+        return responsesList;
     }
 
     public ArrayList<Device> getDevicesList() {
@@ -198,6 +203,15 @@ public class DeviceManager {
                     Log.d("DeviceManager - RESTORE", response);
                     break;
             }
+            responsesList.add(response);
+
+            // append response to bottom sheet
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mainActivity.appendResponseToBottomSheet(response);
+                }
+            });
         }
     }
 

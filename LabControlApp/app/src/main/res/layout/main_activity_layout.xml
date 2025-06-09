@@ -28,14 +28,32 @@
             app:titleTextAppearance="@style/TextAppearance.AppCompat.Display1"
             app:titleTextColor="#070707" />
 
-        <TextView
-            style="@android:style/Widget.Material.TextView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/devicesText"
-            android:textAlignment="center"
-            android:textSize="20sp"
-            android:textStyle="bold|italic" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/responsesButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="0.1"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/responsesButtonContentDecr"
+                app:srcCompat="@drawable/clipboard_text_outline" />
+
+            <TextView
+                style="@android:style/Widget.Material.TextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:text="@string/devicesText"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                android:textStyle="bold|italic" />
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
