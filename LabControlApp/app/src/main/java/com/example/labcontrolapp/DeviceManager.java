@@ -2,6 +2,13 @@ package com.example.labcontrolapp;
 
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,27 +43,70 @@ public class DeviceManager {
 
     public void initializeDevices() {
         devicesList.clear();
-        String networkName;
-        String name;
-        String ip;
-        String mac;
-        for (int i = 1; i < 28; i++) {
-            if (i < 10) {
-                networkName = "PRPC0" + i;
-                name = "PC0" + i;
-                ip = "192.168.88.0" + i;
-                mac = "245:34:1C:4T:" + i;
-            } else {
-                networkName = "PRPC" + i;
-                name = "PC" + i;
-                ip = "192.168.88." + i;
-                mac = "245:34:1C:4T:" + i;
+
+//        // hardcoded way of initializing devices
+//        String networkName;
+//        String name;
+//        String ip;
+//        String mac;
+//        for (int i = 1; i < 28; i++) {
+//            if (i < 10) {
+//                networkName = "PRPC0" + i;
+//                name = "PC0" + i;
+//                ip = "192.168.88.0" + i;
+//                mac = "245:34:1C:4T:" + i;
+//            } else {
+//                networkName = "PRPC" + i;
+//                name = "PC" + i;
+//                ip = "192.168.88." + i;
+//                mac = "245:34:1C:4T:" + i;
+//            }
+//            Device dev = new Device(networkName, name, ip, mac);
+//            dev.attachSocketClient(new SocketClient()); // attach socket client to each device
+//            devicesList.add(dev);
+//        }
+
+        // load and parse devices configuration from JSON file
+        try {
+            String jsonStr = loadJSON();
+            JSONObject jsonObject = new JSONObject(jsonStr);
+            JSONArray devicesArray = jsonObject.getJSONArray("devices");
+
+            for (int i = 0; i < devicesArray.length(); i++) {
+                JSONObject deviceObj = devicesArray.getJSONObject(i);
+                String name = deviceObj.getString("name");
+                String networkName = deviceObj.getString("networkName");
+                String ip = deviceObj.getString("ip");
+                String mac = deviceObj.getString("mac");
+
+                Device dev = new Device(networkName, name, ip, mac);
+                dev.attachSocketClient(new SocketClient());
+                devicesList.add(dev);
             }
-            Device dev = new Device(networkName,name, ip, mac);
-            dev.attachSocketClient(new SocketClient()); // attach socket client to each device
-            devicesList.add(dev);
+
+        } catch (JSONException e) {
+            Log.e("DeviceManager", "Failed to parse lab_devices_config.json", e);
         }
     }
+
+    private String loadJSON() {
+        String json = null; // json will hold all the file contents
+        try {
+            InputStream input = mainActivity.getAssets().open(Constants.DEVICES_INFO_FILENAME); // open file as a byte stream
+            int size = input.available(); // get number of bytes needed
+            byte[] buffer = new byte[size];
+            int bytesRead = input.read(buffer);
+            if (bytesRead != size) {
+                Log.e("DeviceManager", "Expected " + size + " bytes, but read " + bytesRead);
+            }
+            input.close();
+            json = new String(buffer, StandardCharsets.UTF_8); // convert from bytes to String
+        } catch (IOException e) {
+            Log.e("DeviceManager", "Failed to load JSON from assets: " + "lab_devices_config.json");
+        }
+        return json;
+    }
+
 
     public ArrayList<Device> getSelectedDevices() {
         ArrayList<Device> selectedDev = new ArrayList<>();
