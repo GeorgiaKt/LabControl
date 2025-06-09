@@ -16,4 +16,5 @@
     <string name="responsesButtonContentDecr">Responses</string>
     <string name="responsesText">Devices\' Responses</string>
     <string name="nestedScrollViewContDescr">Nested scroll view for multiple responses</string>
+    <string name="networkNameText">Network Name</string>
 </resources>

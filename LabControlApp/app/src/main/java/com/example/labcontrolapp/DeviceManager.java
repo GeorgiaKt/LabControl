@@ -36,20 +36,23 @@ public class DeviceManager {
 
     public void initializeDevices() {
         devicesList.clear();
+        String networkName;
         String name;
         String ip;
         String mac;
         for (int i = 1; i < 28; i++) {
             if (i < 10) {
-                name = "PRPC0" + i;
+                networkName = "PRPC0" + i;
+                name = "PC0" + i;
                 ip = "192.168.88.0" + i;
                 mac = "245:34:1C:4T:" + i;
             } else {
-                name = "PRPC" + i;
+                networkName = "PRPC" + i;
+                name = "PC" + i;
                 ip = "192.168.88." + i;
                 mac = "245:34:1C:4T:" + i;
             }
-            Device dev = new Device(name, ip, mac);
+            Device dev = new Device(networkName,name, ip, mac);
             dev.attachSocketClient(new SocketClient()); // attach socket client to each device
             devicesList.add(dev);
         }
@@ -182,9 +185,9 @@ public class DeviceManager {
         // based on the command executed do the corresponding actions in app
         if (response.contains(" - ")) {
             String[] parts = response.split(" - ");
-            dev.setName(parts[0]); // update pc name
             switch (message) {
                 case Constants.COMMAND_ECHO:
+                    dev.setNetworkName(parts[0]); // update network name of the pc
                     // update os
                     if (parts[1].contains("Windows")) {
                         dev.setOs("Windows");
@@ -193,13 +196,16 @@ public class DeviceManager {
                     Log.d("DeviceManager - ECHO", response);
                     break;
                 case Constants.COMMAND_RESTART:
+                    dev.setName(parts[0]); // update pc name
                     Log.d("DeviceManager - RESTART", response);
                     break;
                 case Constants.COMMAND_SHUTDOWN:
+                    dev.setName(parts[0]); // update pc name
                     dev.setStatus(Constants.STATUS_OFFLINE); // update status on screen
                     Log.d("DeviceManager - SHUTDOWN", response);
                     break;
                 case Constants.COMMAND_RESTORE:
+                    dev.setNetworkName(parts[0]); // update pc name
                     Log.d("DeviceManager - RESTORE", response);
                     break;
             }

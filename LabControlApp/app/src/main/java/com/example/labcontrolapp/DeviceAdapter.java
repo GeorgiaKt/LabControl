@@ -1,7 +1,6 @@
 package com.example.labcontrolapp;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +43,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         // bind data to views
         Device device = devList.get(position);
         // display data
+        holder.networkNameText.setText(device.getNetworkName());
         holder.nameText.setText(device.getName());
         holder.osText.setText(device.getOs());
         holder.statusText.setText(device.getStatus());
@@ -95,12 +95,13 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
 
 
     public static class DeviceViewHolder extends RecyclerView.ViewHolder {
-        TextView nameText, osText, statusText;
+        TextView networkNameText, nameText, osText, statusText;
         ImageView computerImageView, statusImageView, checkmarkImageView;
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
             // references to all views in each card
+            networkNameText = itemView.findViewById(R.id.networkNameText);
             nameText = itemView.findViewById(R.id.nameText);
             osText = itemView.findViewById(R.id.osText);
             statusText = itemView.findViewById(R.id.statusText);
