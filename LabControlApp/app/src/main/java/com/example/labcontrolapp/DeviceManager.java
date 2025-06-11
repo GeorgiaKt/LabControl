@@ -8,6 +8,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -270,6 +273,61 @@ public class DeviceManager {
             });
         }
     }
+
+    public void handleWakeOnLan() {
+        ArrayList<Device> selectedDevices = getSelectedDevices();
+
+        for (Device dev : selectedDevices) {
+            messageExecutor.submit(() -> {
+                if (dev.getStatus().equals(Constants.STATUS_OFFLINE)) { // wake on lan only when offline
+                    try {
+                        sendMagicPacket("", ""); // dev.getMacAddress(), dev.getIpAddress()
+                        Log.d("WakeOnLan", "Magic packet sent to " + dev.getNetworkName());
+                    } catch (Exception e) {
+                        Log.e("WakeOnLan", "Failed to send magic packet to " + dev.getNetworkName(), e);
+                    }
+                }
+            });
+        }
+
+    }
+
+    private static void sendMagicPacket(String macAddress, String broadcastIp) throws Exception {
+        byte[] macBytes = getMacBytes(macAddress);
+        byte[] packet = new byte[6 + 16 * macBytes.length];
+
+        for (int i = 0; i < 6; i++) {
+            packet[i] = (byte) 0xFF;
+        }
+
+        for (int i = 6; i < packet.length; i += macBytes.length) {
+            System.arraycopy(macBytes, 0, packet, i, macBytes.length);
+        }
+
+        InetAddress address = InetAddress.getByName(broadcastIp);
+        DatagramPacket datagramPacket = new DatagramPacket(packet, packet.length, address, Constants.WOL_PORT);
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setBroadcast(true);
+        datagramSocket.send(datagramPacket);
+        datagramSocket.close();
+    }
+
+    private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
+        byte[] bytes = new byte[6];
+        String[] hex = macStr.split("[:-]");
+        if (hex.length != 6) {
+            throw new IllegalArgumentException("Invalid MAC address format: " + macStr);
+        }
+        try {
+            for (int i = 0; i < 6; i++) {
+                bytes[i] = (byte) Integer.parseInt(hex[i], 16);
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid hex digit in MAC address.");
+        }
+        return bytes;
+    }
+
 
     public void shutdownExecutors() {
         shutdownExecutor(messageExecutor);

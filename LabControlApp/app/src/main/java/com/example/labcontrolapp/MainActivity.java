@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.wakeMenuItem) {
-
+                deviceManager.handleWakeOnLan();
                 actionMode.finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.selectAllMenuItem) {
