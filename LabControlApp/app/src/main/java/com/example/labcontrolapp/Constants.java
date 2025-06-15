@@ -4,6 +4,8 @@ public class Constants {
     public static final String LAB_SSID = "\"ProgrLabFree\"";
     public static final String DEVICES_INFO_FILENAME = "lab_devices_config.json";
     public static final String DEFAULT_SERVER_IP = "192.168.1.3"; // 10.0.2.2 emulator's ip
+    public static final String LAB_BROADCAST_IP = "192.168.88.255";
+    public static final int WOL_PORT = 9;
     public static final int SERVER_PORT = 41007;
     public static final int CONNECT_TIMEOUT = 3000; // 3 seconds timeout
     public static final int READ_TIMEOUT = 120000; // 120 seconds timeout
