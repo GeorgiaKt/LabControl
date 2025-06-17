@@ -44,9 +44,10 @@ public class LabControlServer {
                         break; // break inner loop
                     }
 
-                    if (command == null)
+                    if (command == null) {
+                        System.out.println("Client disconnected.");
                         break; // null means client disconnected
-
+                    }
                     switch (command) {
                         case "echo":
                             System.out.println("Echo from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);

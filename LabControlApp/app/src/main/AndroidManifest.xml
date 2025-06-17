@@ -11,7 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- required for Android 12+ along with ACCESS_FINE_LOCATION -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
+    <!-- allow broadcasting packets -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <application
         android:allowBackup="true"

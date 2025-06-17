@@ -1,5 +1,7 @@
 package com.example.labcontrolapp;
 
+import android.content.Context;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -8,6 +10,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -43,29 +48,6 @@ public class DeviceManager {
 
     public void initializeDevices() {
         devicesList.clear();
-
-//        // hardcoded way of initializing devices
-//        String networkName;
-//        String name;
-//        String ip;
-//        String mac;
-//        for (int i = 1; i < 28; i++) {
-//            if (i < 10) {
-//                networkName = "PRPC0" + i;
-//                name = "PC0" + i;
-//                ip = "192.168.88.0" + i;
-//                mac = "245:34:1C:4T:" + i;
-//            } else {
-//                networkName = "PRPC" + i;
-//                name = "PC" + i;
-//                ip = "192.168.88." + i;
-//                mac = "245:34:1C:4T:" + i;
-//            }
-//            Device dev = new Device(networkName, name, ip, mac);
-//            dev.attachSocketClient(new SocketClient()); // attach socket client to each device
-//            devicesList.add(dev);
-//        }
-
         // load and parse devices configuration from JSON file
         try {
             String jsonStr = loadJSON();
@@ -270,6 +252,75 @@ public class DeviceManager {
             });
         }
     }
+
+    public void handleWakeOnLan() {
+        ArrayList<Device> selectedDevices = getSelectedDevices();
+
+        // create multicast lock to allow broadcasting packets
+        WifiManager wifiManager = (WifiManager) mainActivity.getSystemService(Context.WIFI_SERVICE);
+        WifiManager.MulticastLock lock = wifiManager.createMulticastLock("wol_lock");
+        lock.setReferenceCounted(true); // lock gets released only when counter is equal to 0 (acquire increases by 1, release decreases by 1)
+
+        // allow broadcasting & sent magic packet
+        lock.acquire();
+
+        for (Device dev : selectedDevices) {
+            messageExecutor.submit(() -> {
+                if (dev.getStatus().equals(Constants.STATUS_OFFLINE)) { // wake on lan only when offline
+                    try {
+                        sendMagicPacket(dev.getMacAddress(), Constants.LAB_BROADCAST_IP); // dev.getMacAddress()
+                        Log.d("WakeOnLan", "Magic packet sent to " + dev.getNetworkName());
+                    } catch (Exception e) {
+                        Log.e("WakeOnLan", "Failed to send magic packet to " + dev.getNetworkName(), e);
+                    }
+                }
+            });
+        }
+
+        // restore broadcast to being disable
+        lock.release();
+    }
+
+    private static void sendMagicPacket(String macAddress, String broadcastIp) throws Exception {
+        Log.d("WakeOnLAN", "Preparing to send magic packet");
+
+        // prepare packet's context
+        byte[] macBytes = getMacBytes(macAddress);
+        byte[] packet = new byte[6 + 16 * macBytes.length];
+
+        for (int i = 0; i < 6; i++) {
+            packet[i] = (byte) 0xFF;
+        }
+
+        for (int i = 6; i < packet.length; i += macBytes.length) {
+            System.arraycopy(macBytes, 0, packet, i, macBytes.length);
+        }
+
+        // prepare wol packet
+        InetAddress address = InetAddress.getByName(broadcastIp);
+        DatagramPacket datagramPacket = new DatagramPacket(packet, packet.length, address, Constants.WOL_PORT);
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setBroadcast(true);
+        datagramSocket.send(datagramPacket);
+        datagramSocket.close();
+    }
+
+    private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
+        byte[] bytes = new byte[6];
+        String[] hex = macStr.split("[:-]");
+        if (hex.length != 6) {
+            throw new IllegalArgumentException("Invalid MAC address format: " + macStr);
+        }
+        try {
+            for (int i = 0; i < 6; i++) {
+                bytes[i] = (byte) Integer.parseInt(hex[i], 16);
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid hex digit in MAC address.");
+        }
+        return bytes;
+    }
+
 
     public void shutdownExecutors() {
         shutdownExecutor(messageExecutor);
