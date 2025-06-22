@@ -15,6 +15,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -264,11 +265,13 @@ public class DeviceManager {
         // allow broadcasting & sent magic packet
         lock.acquire();
 
+        CountDownLatch latch = new CountDownLatch(selectedDevices.size());
+
         for (Device dev : selectedDevices) {
             messageExecutor.submit(() -> {
                 if (dev.getStatus().equals(Constants.STATUS_OFFLINE)) { // wake on lan only when offline
                     try {
-                        sendMagicPacket(dev.getMacAddress(), Constants.LAB_BROADCAST_IP); // dev.getMacAddress()
+                        sendMagicPacket(dev.getMacAddress(), Constants.LAB_BROADCAST_IP);
                         Log.d("WakeOnLan", "Magic packet sent to " + dev.getNetworkName());
                     } catch (Exception e) {
                         Log.e("WakeOnLan", "Failed to send magic packet to " + dev.getNetworkName(), e);
@@ -277,8 +280,17 @@ public class DeviceManager {
             });
         }
 
-        // restore broadcast to being disable
         lock.release();
+
+        new Thread(() -> { // new thread to not block main one
+            try {
+                latch.await();  // wait until all wake packets sent (all wol threads to finish)
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // restore interrupted status
+            }
+            // restore broadcast (multicast lock) to being disable
+            lock.release();
+        }).start();
     }
 
     private static void sendMagicPacket(String macAddress, String broadcastIp) throws Exception {
