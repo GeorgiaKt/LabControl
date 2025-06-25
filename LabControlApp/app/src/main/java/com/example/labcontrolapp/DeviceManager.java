@@ -89,7 +89,6 @@ public class DeviceManager {
         return json;
     }
 
-
     public ArrayList<Device> getSelectedDevices() {
         ArrayList<Device> selectedDev = new ArrayList<>();
         for (Device dev : devicesList)
@@ -201,7 +200,7 @@ public class DeviceManager {
     }
 
     private static void connectDevice(Device dev) {
-        boolean connectionResult = dev.getClient().connect(dev.getIpAddress()); // connect( dev.getIpAddress() )
+        boolean connectionResult = dev.getClient().connect(dev.getIpAddress());
         if (connectionResult)
             dev.setStatus(Constants.STATUS_ONLINE);
         else
@@ -271,6 +270,8 @@ public class DeviceManager {
                         Log.d("WakeOnLan", "Magic packet sent to " + dev.getName());
                     } catch (Exception e) {
                         Log.e("WakeOnLan", "Failed to send magic packet to " + dev.getName(), e);
+                    }  finally {
+                        latch.countDown();  // mark task as done
                     }
                 }
             });

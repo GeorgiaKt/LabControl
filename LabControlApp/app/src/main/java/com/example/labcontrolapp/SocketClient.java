@@ -15,15 +15,7 @@ public class SocketClient {
     private Socket comSocket;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
-    private boolean isConnected = false;
 
-    public boolean isConnected() {
-        return isConnected;
-    }
-
-    public void setConnected(boolean connected) {
-        isConnected = connected;
-    }
 
     public boolean connect(String ip) {
         serverIP = ip;
@@ -37,13 +29,10 @@ public class SocketClient {
             outputStream = new ObjectOutputStream(comSocket.getOutputStream());
             inputStream = new ObjectInputStream(comSocket.getInputStream());
 
-            setConnected(true);
-
             Log.d("SocketClient", "Connected to /" + serverIP + ":" + Constants.SERVER_PORT);
             return true;
 
         } catch (IOException e) {
-            setConnected(false);
             Log.e("SocketClient", "Failed to connect to /" + serverIP + ":" + Constants.SERVER_PORT);
 
             return false;
@@ -61,8 +50,6 @@ public class SocketClient {
             if (inputStream != null)
                 inputStream.close();
 
-            setConnected(false);
-
         } catch (IOException e) {
             Log.e("SocketClient", "Failed to disconnect from /" + serverIP + ":" + Constants.SERVER_PORT);
         } finally {
@@ -78,16 +65,16 @@ public class SocketClient {
             outputStream.writeObject(message);
             outputStream.flush();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Log.e("SocketClient", "Failed to send message");
         }
     }
 
     public String receiveMessage() {
-        String response;
+        String response = "";
         try {
             response = (String) inputStream.readObject();
         } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
+            Log.e("SocketClient", "Failed to receive message");
         }
         return response;
     }
@@ -99,6 +86,5 @@ public class SocketClient {
         } catch (SocketException e) {
             Log.e("SocketClient", "Failed to set a new timeout");
         }
-
     }
 }

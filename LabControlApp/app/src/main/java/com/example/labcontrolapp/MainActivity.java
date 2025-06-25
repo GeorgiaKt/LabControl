@@ -34,8 +34,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.ArrayList;
-
 
 public class MainActivity extends AppCompatActivity implements OnDeviceClickListener, NetworkMonitor.NetworkStateListener {
     // ui components
@@ -357,11 +355,6 @@ public class MainActivity extends AppCompatActivity implements OnDeviceClickList
             Intent intent = new Intent(MainActivity.this, EchoService.class);
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         }
-    }
-
-    @Override
-    public void onNetworkUnavailable() {
-        displayToast("Network Unavailable");
     }
 
 

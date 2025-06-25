@@ -29,7 +29,6 @@ public class NetworkMonitor {
     private Dialog locationDialog;
     private Dialog labDialog;
     // flags to check network and location status
-    private boolean isEthernet = false;
     private boolean isWiFi = false;
     private boolean locationEnabled = false;
     private boolean newConnection = false;
@@ -39,8 +38,6 @@ public class NetworkMonitor {
     // listener to notify app about connectivity changes
     public interface NetworkStateListener {
         void onNetworkAvailable();
-
-        void onNetworkUnavailable();
     }
 
     public NetworkMonitor(MainActivity mainActivity, Context context, NetworkStateListener listener) {
@@ -57,10 +54,9 @@ public class NetworkMonitor {
 
         Log.d("NetworkMonitor", "Network Monitor Started");
 
-        networkRequest = new NetworkRequest.Builder() // type of networks want to listen to: internet capability via wifi/ethernet
+        networkRequest = new NetworkRequest.Builder() // type of networks want to listen to: internet capability via wifi
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
                 .build();
 
         networkCallback = new ConnectivityManager.NetworkCallback() {
@@ -102,7 +98,7 @@ public class NetworkMonitor {
         checkLocationState();
         checkNetworkState();
 
-        boolean isConnected = isEthernet || isWiFi;
+        boolean isConnected = isWiFi;
 
         // show dialog based on location and network status
         if (!locationEnabled) {
@@ -166,7 +162,6 @@ public class NetworkMonitor {
 
     private void checkNetworkState() {
         isWiFi = false;
-        isEthernet = false;
         Network activeNetwork = connectivityManager.getActiveNetwork();
         if (activeNetwork != null) {
             NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
@@ -174,10 +169,7 @@ public class NetworkMonitor {
             if (capabilities != null &&
                     (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                             capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))) {
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                    Log.d("NetworkMonitor", "Connected via Ethernet");
-                    isEthernet = true;
-                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) { // only WiFi allowed
                     Log.d("NetworkMonitor", "Connected via WiFi");
                     if (isConnectedToLabWiFi()) {
                         Log.d("NetworkMonitor", "Connected to Lab's WiFi");
@@ -212,7 +204,7 @@ public class NetworkMonitor {
                     if (labDialog == null || !labDialog.isShowing()) // if no new dialog instance exists or exists but is not visible
                         labDialog = new MaterialAlertDialogBuilder(mainActivity)
                                 .setTitle("Lab Network Required")
-                                .setMessage("Lab Control only works when connected to the lab's network. Ensure you are on the correct LAN (via Wi-Fi or Ethernet).")
+                                .setMessage("Lab Control only works when connected to the lab's network. Ensure you are on the correct LAN (via WiFi).")
                                 .setCancelable(false)
                                 .setPositiveButton("Open Settings", (dialog, which) -> {
                                     Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
