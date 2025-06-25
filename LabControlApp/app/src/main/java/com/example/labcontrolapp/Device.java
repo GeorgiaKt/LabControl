@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 
 public class Device {
     private String name;
-    private String networkName;
     private String ipAddress;
     private String os;
     private String status;
@@ -12,8 +11,7 @@ public class Device {
     private SocketClient client;
     private boolean isSelected;
 
-    public Device(String networkName, String name, String ip, String mac) {
-        this.networkName = networkName;
+    public Device(String name, String ip, String mac) {
         this.name = name;
         this.ipAddress = ip;
         this.os = "N/A OS";
@@ -47,14 +45,6 @@ public class Device {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getNetworkName() {
-        return networkName;
-    }
-
-    public void setNetworkName(String networkName) {
-        this.networkName = networkName;
     }
 
     public String getIpAddress() {
@@ -108,8 +98,7 @@ public class Device {
     @NonNull
     @Override
     public String toString() {
-        return getNetworkName() + " " +
-                getName() + " " +
+        return getName() + " " +
                 getIpAddress() + " " +
                 getOs() + " " +
                 getStatus() + " " +

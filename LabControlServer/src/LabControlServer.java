@@ -51,7 +51,7 @@ public class LabControlServer {
                     switch (command) {
                         case "echo":
                             System.out.println("Echo from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
-                            labControlServer.sendMessage(labControlServer.getNetworkName() + " - " + labControlServer.getOperatingSystem());
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - " + labControlServer.getOperatingSystem());
                             System.out.println("Sent echo");
                             break;
                         case "restart":
@@ -66,11 +66,11 @@ public class LabControlServer {
                             break;
                         case "restore":
                             System.out.println("Restore from: " + labControlServer.clientIP + ":" + labControlServer.clientPort);
-                            labControlServer.sendMessage(labControlServer.getNetworkName() + " - Restoring...");
+                            labControlServer.sendMessage(labControlServer.getSystemName() + " - Restoring...");
                             System.out.println("Sent restoring");
                             try {
                                 Thread.sleep(90000); // sleep for 90 seconds
-                                labControlServer.sendMessage(labControlServer.getNetworkName() + " - Restored");
+                                labControlServer.sendMessage(labControlServer.getSystemName() + " - Restored");
                                 System.out.println("Sent restored");
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
@@ -124,16 +124,6 @@ public class LabControlServer {
 
     private String getOperatingSystem() {
         return System.getProperty("os.name");
-    }
-
-    private String getNetworkName() {
-        String networkName = null;
-        try {
-            networkName = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
-        return networkName;
     }
 
     private String getSystemName(){

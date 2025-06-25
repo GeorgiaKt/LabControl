@@ -57,12 +57,11 @@ public class DeviceManager {
 
             for (int i = 0; i < devicesArray.length(); i++) {
                 JSONObject deviceObj = devicesArray.getJSONObject(i);
-                String name = deviceObj.getString("name");
-                String networkName = deviceObj.getString("networkName");
+                String name = deviceObj.getString("networkName");
                 String ip = deviceObj.getString("ip");
                 String mac = deviceObj.getString("mac");
 
-                Device dev = new Device(networkName, name, ip, mac);
+                Device dev = new Device(name, ip, mac);
                 dev.attachSocketClient(new SocketClient());
                 devicesList.add(dev);
             }
@@ -202,7 +201,7 @@ public class DeviceManager {
     }
 
     private static void connectDevice(Device dev) {
-        boolean connectionResult = dev.getClient().connect(Constants.DEFAULT_SERVER_IP); // connect( dev.getIpAddress() )
+        boolean connectionResult = dev.getClient().connect(dev.getIpAddress()); // connect( dev.getIpAddress() )
         if (connectionResult)
             dev.setStatus(Constants.STATUS_ONLINE);
         else
@@ -218,9 +217,9 @@ public class DeviceManager {
         // based on the command executed do the corresponding actions in app
         if (response.contains(" - ")) {
             String[] parts = response.split(" - ");
+            dev.setName(parts[0]); // update pc name
             switch (message) {
                 case Constants.COMMAND_ECHO:
-                    dev.setNetworkName(parts[0]); // update network name of the pc
                     // update os
                     if (parts[1].contains("Windows")) {
                         dev.setOs("Windows");
@@ -229,16 +228,13 @@ public class DeviceManager {
                     Log.d("DeviceManager - ECHO", response);
                     break;
                 case Constants.COMMAND_RESTART:
-                    dev.setName(parts[0]); // update pc name
                     Log.d("DeviceManager - RESTART", response);
                     break;
                 case Constants.COMMAND_SHUTDOWN:
-                    dev.setName(parts[0]); // update pc name
                     dev.setStatus(Constants.STATUS_OFFLINE); // update status on screen
                     Log.d("DeviceManager - SHUTDOWN", response);
                     break;
                 case Constants.COMMAND_RESTORE:
-                    dev.setNetworkName(parts[0]); // update pc name
                     Log.d("DeviceManager - RESTORE", response);
                     break;
             }
@@ -272,15 +268,13 @@ public class DeviceManager {
                 if (dev.getStatus().equals(Constants.STATUS_OFFLINE)) { // wake on lan only when offline
                     try {
                         sendMagicPacket(dev.getMacAddress(), Constants.LAB_BROADCAST_IP);
-                        Log.d("WakeOnLan", "Magic packet sent to " + dev.getNetworkName());
+                        Log.d("WakeOnLan", "Magic packet sent to " + dev.getName());
                     } catch (Exception e) {
-                        Log.e("WakeOnLan", "Failed to send magic packet to " + dev.getNetworkName(), e);
+                        Log.e("WakeOnLan", "Failed to send magic packet to " + dev.getName(), e);
                     }
                 }
             });
         }
-
-        lock.release();
 
         new Thread(() -> { // new thread to not block main one
             try {
