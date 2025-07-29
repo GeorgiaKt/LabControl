@@ -4,16 +4,16 @@ Lab Control is an Android-based Client–Server system for remote control of lab
 ## Description
 
 ### Features
-- Command execution 
+- [Command execution](#command-execution) 
   - Echo
   - Restart
   - Shut down
   - Restore
   - Wake on LAN
-- Multiple device selection and deselection
-- Device status monitoring
-- Network validation and monitoring
-- Real-time display of device responses
+- [Multiple device selection and deselection](#multiple-device-selection-and-deselection)
+- [Device status monitoring](#device-status-monitoring)
+- [Network validation and monitoring](#network-validation-and-monitoring)
+- [Real-time display of device responses](#real-time-display-of-device-responses)
 
 ### Command execution
 Commands are exchanged between the client (android application) and the server using TCP Sockets. All commands are used to update the name of a device.
@@ -45,7 +45,7 @@ The application is designed to function exclusively within the lab's local netwo
 ### Real-time display of device responses
 Device responses are shown in a bottom sheet that updates live, supports vertical scrolling and adapts its size to fit the number of messages.
 
-### Device loading
+### Device loading from JSOM file
 Devices are loaded from a `lab_devices_config.json` file located in `src/main/assets/`. Format of the file is:
 ```
 {
@@ -81,3 +81,10 @@ To adapt the application for your own network and devices, you need to:
 - Min SDK 26 (Android 8.0)
 - Target SDK 35 (Android 15)
 - JDK 20.0.1
+
+## Screenshots
+| ![](https://github.com/GeorgiaKt/LabControl/blob/main/screenshots/main_screen.jpg) | ![](https://github.com/GeorgiaKt/LabControl/blob/main/screenshots/multiple_devices_selected.jpg) | ![](https://github.com/GeorgiaKt/LabControl/blob/main/screenshots/multiple_devices_selected_and_command_menu.jpg) |
+|---|----|---|
+| ![](https://github.com/GeorgiaKt/LabControl/blob/main/screenshots/devices_responses_bottom_sheet_1.jpg) | ![](https://github.com/GeorgiaKt/LabControl/blob/main/screenshots/devices_responses_bottom_sheet_2.jpg) | ![](https://github.com/GeorgiaKt/LabControl/blob/main/screenshots/devices_responses_bottom_sheet_3_no_reponses.jpg) |
+
+More screenshots can be found in [screenshots](https://github.com/GeorgiaKt/LabControl/tree/main/screenshots) folder.
