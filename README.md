@@ -24,7 +24,7 @@ Purpose of each command:
   - Plugged into a power source
   - Properly configured in BIOS/UEFI and OS settings to support Wake-on-LAN
 
-*Commands such as restart, shut down, and restore are simulations only.*
+>*Commands such as restart, shut down and restore are simulations only.*
 
 ### Multiple device selection and deselection
 Device selection is managed through a Contextual Action Bar (CAB), which appears upon long-pressing a device. The CAB allows:
@@ -45,7 +45,7 @@ The application is designed to function exclusively within the lab's local netwo
 ### Real-time display of device responses
 Device responses are shown in a bottom sheet that updates live, supports vertical scrolling and adapts its size to fit the number of messages.
 
-### Device loading from JSOM file
+### Device loading from JSON file
 Devices are loaded from a `lab_devices_config.json` file located in `src/main/assets/`. Format of the file is:
 ```
 {
