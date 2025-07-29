@@ -67,6 +67,7 @@ Devices are loaded from a `lab_devices_config.json` file located in `src/main/as
 - Connected to the lab’s LAN network
 - Location permission granted (as required by Android)
 - Location services enabled
+- Lab Control Server running on PCs within the same network
 
 ## Configuration
 To adapt the application for your own network and devices, you need to:
